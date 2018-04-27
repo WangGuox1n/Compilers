@@ -1,0 +1,33 @@
+/*int map[10][10];
+int dis[10][10];
+int floyd(int num){
+	int i,j,k;
+	i = j = k = 0;
+	while(i < num) {
+		while(j < num) {
+			while(k < num) {
+				if (dis[j][i] + dis[i][k] < dis[j][k]) {
+					i = j + k;
+				}
+				k = k + 1;
+			}
+			j = j + 1;
+		}
+		i = i + 1;
+	}
+	return 1;
+}*/
+int f1(int arr[10][1])
+{
+	return arr[1][1];
+}
+
+int main(){
+	int number;
+	int b[10][1];
+	f1(b);
+	number = 3;
+	//dis = map;
+	//floyd(number);
+	return number;
+}
