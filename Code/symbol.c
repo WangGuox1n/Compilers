@@ -47,8 +47,8 @@ void traverseTree(SyntaxTreeNode* root)
 			printf("in ExtDef 0\n");
 			traverseTree(root->children[0]);
 			printf("back to ExtDef 0\n");
-			typeCopy(root->type, root->children[0]->type);
-			typeCopy(root->children[1]->type, root->type);
+			root->type = root->children[0]->type;
+			root->children[1]->type = root->type;
 			traverseTree(root->children[1]);
 			printf("back to ExtDef 0\n");
 		}
@@ -57,17 +57,17 @@ void traverseTree(SyntaxTreeNode* root)
 			printf("in ExtDef 1\n");
 			traverseTree(root->children[0]);
 			printf("back to ExtDef 1\n");
-			typeCopy(root->type, root->children[0]->type);
+			root->type = root->children[0]->type;
 		}
 		else if (root->productionNum == 2)
 		{
 			printf("in ExtDef 2\n");
 			traverseTree(root->children[0]);
 			printf("back to ExtDef 2\n");
-			typeCopy(root->type, root->children[0]->type);
+			root->type = root->children[0]->type;
 			root->type->isFunction = 1;
 			root->type->flag = Defined;
-			typeCopy(root->children[1]->type, root->type);
+			root->children[1]->type = root->type;
 			currentFunc.returnType = root->type;
 			if(isFuncExist(root->children[1]->children[0]->content))
 			{
@@ -84,10 +84,10 @@ void traverseTree(SyntaxTreeNode* root)
 			printf("in ExtDef 3\n");
 			traverseTree(root->children[0]);
 			printf("back to ExtDef 3\n");
-			typeCopy(root->type, root->children[0]->type);
+			root->type = root->children[0]->type;
 			root->type->isFunction = 1;
 			root->type->flag = Declared;
-			typeCopy(root->children[1]->type, root->type);
+			root->children[1]->type = root->type;
 			currentFunc.returnType = root->type;
 			traverseTree(root->children[1]);
 			printf("back to ExtDef 3\n");
@@ -97,12 +97,12 @@ void traverseTree(SyntaxTreeNode* root)
 	{
 		report(root);
 		printf("in ExtDecList\n");
-		typeCopy(root->children[0]->type, root->type);
+		root->children[0]->type = root->type;
 		traverseTree(root->children[0]);
 		printf("back to ExtDecList\n");
 		if (root->productionNum == 1)
 		{
-			typeCopy(root->children[2]->type, root->type);
+			root->children[2]->type = root->type;
 			traverseTree(root->children[2]);
 			printf("back to ExtDecList\n");
 		}
@@ -113,14 +113,14 @@ void traverseTree(SyntaxTreeNode* root)
 		if (root->productionNum == 0)
 		{
 			printf("in Specifier 0\n");
-			typeCopy(root->type, root->children[0]->type);
+			root->type = root->children[0]->type;
 		}
 		else if (root->productionNum == 1)
 		{
 			printf("in Specifier 1\n");
 			traverseTree(root->children[0]);
 			printf("back to Specifier 1\n");
-			typeCopy(root->type, root->children[0]->type);
+			root->type = root->children[0]->type;
 		}
 	}
 	else if (strcmp(root->name, "StructSpecifier") == 0)
@@ -136,8 +136,8 @@ void traverseTree(SyntaxTreeNode* root)
 			buildStruct(root->children[3], root->type->u.structure, root->type->u.structure);
 			if (root->children[1] != NULL) //OptTag -> ID
 			{
-				typeCopy(root->children[1]->type, root->type);
-				typeCopy(root->children[1]->children[0]->type, root->type);
+				root->children[1]->type = root->type;
+				root->children[1]->children[0]->type = root->type;
 				insertSymbolTable(root->children[1]->children[0]);
 			}
 		}
@@ -151,7 +151,7 @@ void traverseTree(SyntaxTreeNode* root)
 				root->type->kind = NON_EXIST;
 			}
 			else
-				typeCopy(root->type,type);
+				root->type = type;
 			printf("back to StructSpecifier 1\n");
 		}
 	}
@@ -161,12 +161,12 @@ void traverseTree(SyntaxTreeNode* root)
 		if (root->productionNum == 0)
 		{
 			printf("in VarDec 0\n");
-			typeCopy(root->children[0]->type,root->type);
+			root->children[0]->type = root->type;
 			if (root->type->isParameter)
 			{
 				currentFunc.argv[currentFunc.argc] = (FieldList)malloc(sizeof(struct FieldList_));
 				currentFunc.argv[currentFunc.argc]->name = root->children[0]->content;
-				typeCopy(currentFunc.argv[currentFunc.argc]->type,root->type);
+				currentFunc.argv[currentFunc.argc]->type = root->type;
 				currentFunc.argc++;
 			}
 			else
@@ -191,7 +191,7 @@ void traverseTree(SyntaxTreeNode* root)
 		if (root->productionNum == 0)
 		{
 			printf("in Fundec 0\n");
-			typeCopy(root->children[0]->type,root->type);
+			root->children[0]->type = root->type;
 			currentFunc.argc = 0;
 			traverseTree(root->children[2]);
 			printf("back to FunDec\n");
@@ -201,7 +201,7 @@ void traverseTree(SyntaxTreeNode* root)
 		else if (root->productionNum == 1)
 		{
 			printf("in Fundec 1\n");
-			typeCopy(root->children[0]->type,root->type);
+			root->children[0]->type = root->type;
 			currentFunc.argc = 0;
 			insertFuncTable(root->children[0]);
 			printf("back to FunDec\n");
@@ -226,8 +226,8 @@ void traverseTree(SyntaxTreeNode* root)
 		printf("in ParamDec\n");
 		traverseTree(root->children[0]);
 		printf("back to ParamDec\n");
-		typeCopy(root->type,root->children[0]->type);
-		typeCopy(root->children[1]->type,root->type);
+		root->type = root->children[0]->type;
+		root->children[1]->type = root->type;
 		root->children[1]->type->isParameter = 1;
 		traverseTree(root->children[1]);
 		printf("back to ParamDec\n");
@@ -308,8 +308,8 @@ void traverseTree(SyntaxTreeNode* root)
 		printf("in Def\n");
 		traverseTree(root->children[0]);
 		printf("back to Def\n");
-		typeCopy(root->type,root->children[0]->type);
-		typeCopy(root->children[1]->type,root->type);
+		root->type = root->children[0]->type;
+		root->children[1]->type = root->type;
 		//root->children[1]->type->isParameter==0;
 		traverseTree(root->children[1]);
 		printf("back to Def\n");
@@ -323,12 +323,12 @@ void traverseTree(SyntaxTreeNode* root)
 			printf("no ");
 		report(root);
 		printf("in DecList\n");
-		typeCopy(root->children[0]->type,root->type);
+		root->children[0]->type = root->type;
 		traverseTree(root->children[0]);
 		printf("back to DecList\n");
 		if (root->productionNum == 1)
 		{
-			typeCopy(root->children[2]->type,root->type);
+			root->children[2]->type = root->type;
 			traverseTree(root->children[2]);
 			printf("back to DecList\n");
 		}
@@ -337,7 +337,7 @@ void traverseTree(SyntaxTreeNode* root)
 	{
 		report(root);
 		printf("in Dec\n");
-		typeCopy(root->children[0]->type,root->type);
+		root->children[0]->type = root->type;
 		traverseTree(root->children[0]);
 		printf("back to Dec\n");
 		if (root->productionNum == 1)
@@ -373,7 +373,7 @@ void traverseTree(SyntaxTreeNode* root)
 				printf("Error type 5 at line %d: Type mismatched for assignment.\n", root->firstline);
 				break;
 			}
-			typeCopy(root->type,root->children[0]->type);
+			root->type = root->children[0]->type;
 			break;
 		}
 		case 1:/*Exp -> Exp AND Exp*/
@@ -397,7 +397,7 @@ void traverseTree(SyntaxTreeNode* root)
 				printf("Error type 7 at line %d: Type mismatched for operands.\n", root->firstline);
 				break;
 			}
-			typeCopy(root->type,root->children[0]->type);
+			root->type = root->children[0]->type;
 			break;
 		}
 		case 4:/*Exp -> Exp PLUS Exp*/
@@ -427,7 +427,7 @@ void traverseTree(SyntaxTreeNode* root)
 				printf("Error type 7 at line %d: Type mismatched for operands.\n", root->firstline);
 				break;
 			}
-			typeCopy(root->type,root->children[0]->type);
+			root->type = root->children[0]->type;
 			break;
 		}
 		case 8: /*Exp -> LP Exp RP*/
@@ -435,7 +435,7 @@ void traverseTree(SyntaxTreeNode* root)
 			printf("in Exp 8\n");
 			traverseTree(root->children[1]);
 			printf("back to Exp 8\n");
-			typeCopy(root->type,root->children[1]->type);
+			root->type = root->children[1]->type;
 			break;
 		}
 		case 9:/*Exp -> MINUS Exp*/
@@ -451,7 +451,7 @@ void traverseTree(SyntaxTreeNode* root)
 				printf("Error type 7 at line %d: Type mismatched for operands.\n", root->firstline);
 				break;
 			}
-			typeCopy(root->type,root->children[1]->type);
+			root->type = root->children[1]->type;
 			break;
 		}
 		case 11:/*Exp -> ID LP Args RP*/
@@ -469,7 +469,7 @@ void traverseTree(SyntaxTreeNode* root)
 					printf("Error type 2 at line %d: Undefined function \"%s\".\n", root->firstline, root->children[0]->content);
 				break;
 			}
-			typeCopy(root->type,func.returnType);
+			root->type = func.returnType;
 			stackTop++;
 			calledFuncStack[stackTop].argc = 0;
 			//calledFunc.argc = 0;
@@ -488,6 +488,7 @@ void traverseTree(SyntaxTreeNode* root)
 			printf("in Exp 12 \n");
 			root->children[0]->type->isFunction = 1;
 			Function func = getFuncByID(root->children[0]);
+			//Type type = getTypeByID(root->children[0], 1);
 			if (func.returnType == NULL)
 			{
 				Type type = getTypeByID(root->children[0], 0);
@@ -497,7 +498,7 @@ void traverseTree(SyntaxTreeNode* root)
 					printf("Error type 2 at line %d: Undefined function \"%s\".\n", root->firstline, root->children[0]->content);
 				break;
 			}
-			typeCopy(root->type,func.returnType);
+			root->type = func.returnType;
 			if (func.argc != 0)
 			{
 				printf("Error type 9 at line %d: Conflicting types for \"%s\".\n", root->firstline, root->children[0]->content);
@@ -530,7 +531,8 @@ void traverseTree(SyntaxTreeNode* root)
 				//root->type->kind = ERROR;
 				break;
 			}
-			typeCopy(root->type,root->children[0]->type->u.array.elem);
+			//root->type = root->children[0]->type;
+			root->type = root->children[0]->type->u.array.elem;
 			break;
 		}
 		case 14:/*Exp -> Exp DOT ID*/
@@ -549,7 +551,7 @@ void traverseTree(SyntaxTreeNode* root)
 			{
 				if (strcmp(f->name, root->children[2]->content) == 0)
 				{
-					typeCopy(root->type,f->type);
+					root->type = f->type;
 					break;
 				}
 			}
@@ -572,7 +574,7 @@ void traverseTree(SyntaxTreeNode* root)
 					root->type->kind = NON_EXIST;
 				}
 				else
-					typeCopy(root->type,type);
+					root->type = type;
 				printf("back to Exp 15\n");
 			}
 			else
@@ -585,7 +587,7 @@ void traverseTree(SyntaxTreeNode* root)
 					root->type->kind = NON_EXIST;
 				}
 				else
-					typeCopy(root->type,type);
+					root->type = type;
 				printf("back to Exp 15\n");
 			}
 			break;
@@ -614,7 +616,7 @@ void traverseTree(SyntaxTreeNode* root)
 		int argc = calledFuncStack[stackTop].argc;
 		if(calledFuncStack[stackTop].argv[argc]==NULL)
 			calledFuncStack[stackTop].argv[argc] = (FieldList)malloc(sizeof(struct FieldList_));
-		typeCopy(calledFuncStack[stackTop].argv[argc]->type,root->children[0]->type);
+		calledFuncStack[stackTop].argv[argc]->type = root->children[0]->type;
 		calledFuncStack[stackTop].argc++;
 		printf("back to Args\n");
 		if (root->productionNum == 0)
@@ -645,15 +647,11 @@ void insertSymbolTable(SyntaxTreeNode* ID)
 	}
 	printf("back to insertSymbolTable\n");
 	FieldList newSymbol = (FieldList)malloc(sizeof(struct FieldList_));
-	typeCopy(newSymbol->type, ID->type);
+	newSymbol->type = ID->type;
 	newSymbol->name = ID->content;
 	unsigned int index = hash_pjw(ID->content);
 	if (symbolTable[index] == NULL)
-	{
-		if(newSymbol->type==NULL)
-			printf("esssssssssssssssssssssssssssssssssssssss\n");
 		symbolTable[index] = newSymbol;
-	}
 	else
 	{
 		newSymbol->tail = symbolTable[index];
@@ -705,7 +703,7 @@ void insertFuncTable(SyntaxTreeNode * root)
 	{
 		SyntaxTreeNode * ID = malloc(sizeof(struct SyntaxTreeNode));
 		strcpy(ID->content,currentFunc.argv[i]->name);
-		typeCopy(ID->type , currentFunc.argv[i]->type);
+		ID->type = currentFunc.argv[i]->type;
 		insertSymbolTable(ID);
 	}			
 }
@@ -817,7 +815,7 @@ void buildStruct(SyntaxTreeNode * root, FieldList head, FieldList current)
 		
 		FieldList f = (FieldList)malloc(sizeof(struct FieldList_));
 		f->name = root->content;
-		typeCopy(f->type , root->type);
+		f->type = root->type;
 		current->tail = f;
 	}
 	else
@@ -860,27 +858,4 @@ void report(SyntaxTreeNode* root)
 		printf("yes ");
 	else
 		printf("no ");
-}
-
-void typeCopy(Type dest, Type src)
-{
-	if(dest == NULL)
-	{	
-		dest = (Type)malloc(sizeof(struct Type_));
-	}
-	if(src==NULL)
-	{
-		printf("wrong copy\n");
-		return;
-	}
-/*	if(src == NULL)
-		src = (Type)malloc(sizeof(struct Type_));*/
-	//printf("in typeCopy\n");
-	//memcpy(dest,src,sizeof(struct Type_));
-	dest->isFunction = src->isFunction;
-	dest->isParameter = src->isParameter;
-	dest->flag = src->flag;
-	dest->kind = src->kind;
-	dest->u = src->u;
-	//dest = src;
 }
