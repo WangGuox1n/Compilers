@@ -1,0 +1,46 @@
+./parser ../Test/test2.cmm
+no in Program
+no in ExtDefList
+no in ExtDef 2
+no in Specifier 0
+back to ExtDef 2
+no in Fundec 1
+in insertFuncTable
+back to FunDec
+back to ExtDef 2
+no in CompSt
+no in DefList
+no in Def
+no in Specifier 0
+back to Def
+no no in DecList
+no in Dec
+no in VarDec 0
+in insertSymbolTable
+in isSymbolExist
+back to insertSymbolTable
+esssssssssssssssssssssssssssssssssssssss
+back to VarDec 0
+back to Dec
+no in Exp 16
+back to Dec
+Error type 5 at line 3: Type mismatched for assignment
+back to Dec
+back to DecList
+back to Def
+back to DefList
+back to DefList
+back to CompSt
+no in StmtList
+no in Stmt 0
+no in Exp 11 
+in getTypeByID
+Error type 2 at line 4: Undefined function "inc".
+back to Stmt 0
+back to StmtList
+back to StmtList
+back to CompSt
+back to ExtDef 2
+back to ExtDefList
+back to ExtDefList
+back to Program

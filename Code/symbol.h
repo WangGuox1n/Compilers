@@ -21,6 +21,9 @@ struct FieldList_
 
 struct Type_
 {
+	int isFunction;
+	int isParameter;
+	enum { Defined, Declared } flag;
 	enum { NON_EXIST, ERROR, BASIC, ARRAY, STRUCTURE } kind;
 	union
 	{
@@ -31,9 +34,6 @@ struct Type_
 		// 结构体类型信息是一个链表
 		FieldList structure;
 	} u;
-	int isFunction;
-	int isParameter;
-	enum { Defined, Declared } flag;
 };
 
 struct Function_
@@ -58,9 +58,12 @@ void insertSymbolTable(SyntaxTreeNode * ID);
 void insertFuncTable(SyntaxTreeNode * root);
 int checkArgsEqual(Function f1, Function f2);
 int checkTypeEqual(Type t1, Type t2);
-int isExist(char* name);
+int isSymbolExist(char* name);
+int isFuncExist(char* name);
 Type getTypeByID(SyntaxTreeNode* ID, int flag);
 Function getFuncByID(SyntaxTreeNode* ID);
-void addStructDefList(SyntaxTreeNode * root, FieldList structHead);
+void buildStruct(SyntaxTreeNode * root, FieldList head, FieldList current);
 void printtype(Type type);
+void report(SyntaxTreeNode* root);
+void typeCopy(Type dest, Type src);
 #endif

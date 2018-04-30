@@ -1,5 +1,12 @@
+struct Temp{
+	int a;
+};
+struct Temp func(struct Temp c1)
+{
+	return c1;
+}
 int main()
 {
-	int i = 0;
-	j = i + 1;
+	struct Temp b;
+	b.a = 1;
 }
