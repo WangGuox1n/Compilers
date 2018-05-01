@@ -48,9 +48,7 @@ struct Function_
 FieldList symbolTable[MAX_SYMBOLTABLE];
 Function funcTable[MAX_FUNCTABLE];
 Function calledFuncStack[MAX_FUNCTABLE];
-Function funcHead;
 Function currentFunc; //当前所在函数,保存返回类型、参数个数、参数类型，用于填表前的检查
-Function calledFunc;
 int funcCount;
 int stackTop;
 
@@ -64,6 +62,4 @@ Type getTypeByID(SyntaxTreeNode* ID, int flag);
 Function getFuncByID(SyntaxTreeNode* ID);
 void buildStruct(SyntaxTreeNode * root, FieldList head, FieldList current);
 void printtype(Type type);
-void report(SyntaxTreeNode* root);
-void typeCopy(Type dest, Type src);
 #endif

@@ -16,8 +16,5 @@ int main(int argc, char** argv)
 	//yydebug = 1;
 	yyparse();
 	traverseTree(treeroot);	
-	//output(treeroot,0);
-/*	if(isError == 0)
-		output(treeroot,0);*/
 	return 0;
 }
