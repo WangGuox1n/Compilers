@@ -2,3 +2,4 @@ int main()
 {
 	struct Position pos;
 }
+//Error type 17 at line 3: Undefined structures "Position".

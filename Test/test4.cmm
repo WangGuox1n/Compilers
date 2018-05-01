@@ -9,3 +9,5 @@ int func()
 int main()
 {
 }
+
+//Error type 4 at line 5: redefinition of function "func".

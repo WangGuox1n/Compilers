@@ -8,3 +8,4 @@ int main()
 	int i;
 	i.x;
 }
+//Error type 13 at line 9: Illegal use of ".".

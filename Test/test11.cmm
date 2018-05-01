@@ -3,3 +3,4 @@ int main()
 	int i;
 	i(10);
 }
+//Error type 11 at line 4: "i" is not a function.

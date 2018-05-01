@@ -16,6 +16,7 @@ SyntaxTreeNode* createTreeNode(char* name, char* content, int firstline, int chi
 		treenode->type = (Type)malloc(sizeof(struct Type_));
 		treenode->type->kind = BASIC;
 		treenode->type->u.basic = INT_;
+		//printtype(treenode->type);
 	}
 	else if (strcmp(name, "FLOAT") == 0)
 	{

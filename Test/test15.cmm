@@ -7,3 +7,4 @@ struct Position
 int main()
 {
 }
+//Error type 15 at line 4: Redefined field "x".

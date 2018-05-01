@@ -11,3 +11,5 @@ int main()
 	i = func();
 }
 
+//Error type 3 at line 9: Redefined variable "i".
+//Error type 3 at line 10: Redefined variable "i".

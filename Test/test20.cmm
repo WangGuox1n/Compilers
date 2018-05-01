@@ -9,3 +9,4 @@ int main()
 	int i;
 	i = func();
 }
+//Error type 3 at line 9: Redefined variable "i".

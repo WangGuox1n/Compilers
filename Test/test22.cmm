@@ -16,3 +16,4 @@ int main()
 	struct Temp2 t2;
 	t1 = t2;
 }
+//Error type 5 at line 17: Type mismatched for assignment.
