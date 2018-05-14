@@ -62,4 +62,5 @@ Type getTypeByID(SyntaxTreeNode* ID, int flag);
 Function getFuncByID(SyntaxTreeNode* ID);
 void buildStruct(SyntaxTreeNode * root, FieldList head, FieldList current);
 void printtype(Type type);
+void addReadAndWrite();
 #endif

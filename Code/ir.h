@@ -6,10 +6,12 @@
 typedef struct Operand_ Operand;
 typedef struct InterCode InterCode;
 typedef struct InterCodes_ InterCodes;
+typedef struct ArgList ArgList;
 
+enum RELOP_kind { LT, LE, EQ, NE, GE, GT };
 struct Operand_
 {
-	enum { VARIABLE, CONSTANT, ADDRESS, FUNCTION} kind;
+	enum { TEMP, VARIABLE, CONSTANT, ADDRESS, FUNCTION, LABEL} kind;
 	union {
 		char *name;
 		int value;
@@ -44,27 +46,39 @@ struct InterCode {
 		IC_WRITE    // WRITE result
 	} kind;
 
-	struct Operand_ result, arg1, art2;
+	enum RELOP_kind relop;
+	struct Operand_ result, arg1, arg2;
 };
 
 struct InterCodes_ {
+	int count;
 	InterCode code;
 	struct InterCodes_ *prev,*next;
 };
 
-int tempId = 0;
-int labelId = 0;
+struct ArgList{
+	int count;
+	int id[MAX_ARGS];
+};
 
+int tempId;
+int labelId;
+int interCount;
+
+InterCodes *codeHead;
+InterCodes *codeTail;
+
+FieldList lookupSymbol(SyntaxTreeNode *ID);
 void gen_InterCode(SyntaxTreeNode *root);
-
-InterCodes* newInterCode();
+void printOperand(Operand operand);
+InterCodes* newInterCodes();
 
 InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place);
 InterCodes* translate_Stmt(SyntaxTreeNode *Stmt);
 InterCodes* translate_StmtList(SyntaxTreeNode *StmtList);
 InterCodes* translate_CompSt(SyntaxTreeNode *CompSt);
 InterCodes* translate_Cond(SyntaxTreeNode *Exp, int label_true, int label_false);
-InterCodes* translate_Args(SyntaxTreeNode *Args, SyntaxTreeNode** arg_list);
+InterCodes* translate_Args(SyntaxTreeNode *Arg, ArgList* arglist);
 InterCodes* translate_Program(SyntaxTreeNode *Program);
 InterCodes* translate_ExtDefList(SyntaxTreeNode *ExtDefList);
 InterCodes* translate_ExtDef(SyntaxTreeNode *ExtDef);
@@ -74,5 +88,5 @@ InterCodes* translate_FunDec(SyntaxTreeNode *FunDec);
 InterCodes* translate_VarList(SyntaxTreeNode *VarList);
 InterCodes* translate_ParamDec(SyntaxTreeNode *ParamDec);
 
-
+void printLink();
 #endif

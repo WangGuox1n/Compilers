@@ -1,6 +1,6 @@
 #include "syntaxtree.h"
-#include "symbol.h"
 #include "syntax.tab.h"
+#include "ir.h"
 int main(int argc, char** argv)
 {
 	if(argc <= 1) 
@@ -15,6 +15,9 @@ int main(int argc, char** argv)
 	yyrestart(f);
 	//yydebug = 1;
 	yyparse();
-	traverseTree(treeroot);	
+	addReadAndWrite();
+	traverseTree(treeroot);
+	//output(treeroot,0);
+	gen_InterCode(treeroot);
 	return 0;
 }

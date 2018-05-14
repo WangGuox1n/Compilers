@@ -87,7 +87,7 @@ ID_error [0-9]+{ID}
 	return ASSIGNOP; 
 } 
 {RELOP} { 
-	yylval.type_SyntaxTreeNode = (struct SyntaxTreeNode*)createTreeNode("RELOP", NULL, yylineno, 0);
+	yylval.type_SyntaxTreeNode = (struct SyntaxTreeNode*)createTreeNode("RELOP", yytext, yylineno, 0);
 	return RELOP;
 }
 {PLUS} { 

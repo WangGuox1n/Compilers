@@ -1,6 +1,7 @@
 #include "symbol.h"
 #include "syntaxtree.h"
 #include <string.h>
+#include <assert.h>
 unsigned int hash_pjw(char* name)
 {
 	unsigned int val = 0, i;
@@ -660,6 +661,7 @@ Type getTypeByID(SyntaxTreeNode* ID, int flag)
 
 Function getFuncByID(SyntaxTreeNode* ID)
 {
+	assert(funcCount);
 	Function f;
 	f.returnType = NULL;
 	for (int i = 0; i < funcCount; i++)
@@ -731,4 +733,29 @@ void printtype(Type type)
 	case NON_EXIST : printf("type = NON_EXIST\n"); break;
 	default: printf("type = NULL\n"); break;
 	}
+}
+
+void addReadAndWrite()
+{
+	Function read;
+	read.name = "read";
+	read.returnType = malloc(sizeof(struct Type_));
+	read.returnType->flag = Defined;
+	read.returnType->kind =BASIC;
+	read.returnType->u.basic = INT_;
+	read.argc = 0;
+	funcTable[funcCount++]=read;
+
+	Function write;
+	write.name = "write";
+	write.returnType = malloc(sizeof(struct Type_));
+	write.returnType->flag = Defined;
+	write.returnType->kind = BASIC;
+	write.returnType->u.basic = INT_;
+	write.argc = 1;
+	write.argv[0] = malloc(sizeof(struct FieldList_));
+	write.argv[0]->type = malloc(sizeof(struct Type_));
+	write.argv[0]->type->kind = BASIC;
+	write.argv[0]->type->u.basic = INT_;
+	funcTable[funcCount++]=write;
 }

@@ -923,7 +923,7 @@ case 10:
 YY_RULE_SETUP
 #line 89 "./lexical.l"
 { 
-	yylval.type_SyntaxTreeNode = (struct SyntaxTreeNode*)createTreeNode("RELOP", NULL, yylineno, 0);
+	yylval.type_SyntaxTreeNode = (struct SyntaxTreeNode*)createTreeNode("RELOP", yytext, yylineno, 0);
 	return RELOP;
 }
 	YY_BREAK

@@ -1,6 +1,0 @@
-int main()
-{
-	int i[10];
-	i[1.5] = 10;
-}
-//Error type 12 at line 4: Array argument must be an integer.

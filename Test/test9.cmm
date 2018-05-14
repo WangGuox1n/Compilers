@@ -1,9 +1,0 @@
-int func(int i)
-{
-	return i;
-}
-int main()
-{
-	func(1, 2);
-}
-//Error type 9 at line 7: Conflicting types for "func".

@@ -1,6 +1,0 @@
-int main()
-{
-	float j;
-	10 + j;
-}
-//Error type 7 at line 4: Type mismatched for operands.

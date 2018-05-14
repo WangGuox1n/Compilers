@@ -1,0 +1,97 @@
+./parser ../../Desktop/Test/lab3_base/1.cmm 
+0 Program (1)
+  0 ExtDefList (1)
+    0 ExtDef (1)
+      0 Specifier (1)
+        0 TYPE: int
+      0 FunDec (1)
+        0 ID: main
+        0 LP
+        0 RP
+      0 CompSt (2)
+        0 LC
+        0 DefList (3)
+          0 Def (3)
+            0 Specifier (3)
+              0 TYPE: int
+            0 DecList (3)
+              0 Dec (3)
+                0 VarDec (3)
+                  0 ID: n
+            0 SEMI
+        0 StmtList (4)
+          0 Stmt (4)
+            0 Exp (4)
+              0 Exp (4)
+                0 ID: n
+              0 ASSIGNOP
+              0 Exp (4)
+                0 ID: read
+                0 LP
+                0 RP
+            0 SEMI
+          0 StmtList (5)
+            0 Stmt (5)
+              0 IF
+              0 LP
+              0 Exp (5)
+                0 Exp (5)
+                  0 ID: n
+                0 RELOP
+                0 Exp (5)
+                  0 INT: 0
+              0 RP
+              0 Stmt (6)
+                0 Exp (6)
+                  0 ID: write
+                  0 LP
+                  0 Args (6)
+                    0 Exp (6)
+                      0 INT: 1
+                  0 RP
+                0 SEMI
+              0 ELSE
+              0 Stmt (7)
+                0 IF
+                0 LP
+                0 Exp (7)
+                  0 Exp (7)
+                    0 ID: n
+                  0 RELOP
+                  0 Exp (7)
+                    0 INT: 0
+                0 RP
+                0 Stmt (8)
+                  0 Exp (8)
+                    0 ID: write
+                    0 LP
+                    0 Args (8)
+                      0 Exp (8)
+                        0 MINUS
+                        0 Exp (8)
+                          0 INT: 1
+                    0 RP
+                  0 SEMI
+                0 ELSE
+                0 Stmt (10)
+                  0 Exp (10)
+                    0 ID: write
+                    0 LP
+                    0 Args (10)
+                      0 Exp (10)
+                        0 INT: 0
+                    0 RP
+                  0 SEMI
+            0 StmtList (11)
+              0 Stmt (11)
+                0 RETURN
+                0 Exp (11)
+                  0 INT: 0
+                0 SEMI
+        0 RC
+in Program
+in ExtDefList
+in ExtDef
+in ExtDefList
+in concat_Code
+Makefile:37: recipe for target 'test' failed

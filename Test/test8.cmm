@@ -1,6 +1,0 @@
-int main()
-{
-	float j = 1.7;
-	return j;
-}
-//Error type 8 at line 4: Type mismatched for return.

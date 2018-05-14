@@ -1,7 +1,0 @@
-int main()
-{
-	int i;
-	i = 3.7;
-}
-
-//Error type 5 at line 4: Type mismatched for assignment.

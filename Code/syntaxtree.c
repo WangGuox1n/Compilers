@@ -36,6 +36,10 @@ SyntaxTreeNode* createTreeNode(char* name, char* content, int firstline, int chi
 			treenode->type->u.basic = FLOAT_;
 		//printtype(treenode->type);
 	}
+	else if(strcmp(name, "RELOP") == 0)
+	{
+		strcpy(treenode->content, content);
+	}
 
 	treenode->firstline = firstline;
 	treenode->childrenNum = childrenNum;
@@ -83,7 +87,7 @@ void output(SyntaxTreeNode* p, int indentlength)
 	//printtype(p->type);
 	if (p == NULL)
 		return;
-
+	printf("%d ", p->productionNum);
 	for (int i = 0; i < indentlength; ++i)
 		printf(" ");
 	printf("%d ",p->type->isParameter);
