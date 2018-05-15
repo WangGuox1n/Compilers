@@ -3,6 +3,8 @@
 #include "symbol.h"
 void gen_InterCode(SyntaxTreeNode *root)
 {
+	tempId = 1;
+	labelId = 1;
 	InterCodes* codes = translate_Program(root);
 	assert(codes != NULL);
 	for (InterCodes* p = codes; p != NULL; p = p->next)
@@ -25,12 +27,12 @@ void gen_InterCode(SyntaxTreeNode *root)
 			printOperand(p->code.arg1);
 			break;
 		}
-		case IC_ADD: {
+		case IC_PLUS: {
 			printOperand(p->code.result); printf(" := ");
 			printOperand(p->code.arg1);  printf(" + "); printOperand(p->code.arg2);
 			break;
 		}
-		case IC_SUB: {
+		case IC_MINUS: {
 			printOperand(p->code.result); printf(" := ");
 			printOperand(p->code.arg1);  printf(" - "); printOperand(p->code.arg2);
 			break;
@@ -43,6 +45,21 @@ void gen_InterCode(SyntaxTreeNode *root)
 		case IC_DIV: {
 			printOperand(p->code.result); printf(" := ");
 			printOperand(p->code.arg1);  printf(" / "); printOperand(p->code.arg2);
+			break;
+		}
+		case IC_ADDR:{
+			printOperand(p->code.result); printf(" := &");
+			printOperand(p->code.arg1);
+			break;
+		}
+		case IC_DEREF_R:{
+			printOperand(p->code.result); printf(" := *");
+			printOperand(p->code.arg1);
+			break;
+		}
+		case IC_DEREF_L:{
+			printf("*");   printOperand(p->code.result); 
+			printf(" := ");printOperand(p->code.arg1);
 			break;
 		}
 		case IC_GOTO: {
@@ -65,7 +82,7 @@ void gen_InterCode(SyntaxTreeNode *root)
 			break;
 		}
 		case IC_DEC: {
-			//printf("DEC ");printOperand(p->code.result);printf(" %d", p->code.size);
+			printf("DEC ");printOperand(p->code.result);printf(" %d", p->code.arg1.u.value);
 			break;
 		}
 		case IC_RETURN: {
@@ -111,6 +128,73 @@ FieldList lookupSymbol(SyntaxTreeNode *ID)
 	return NULL;
 }
 
+int get_structSize(FieldList structHead)
+{
+	int size = 0;
+	printf("in get_structSize\n");
+	assert(structHead);
+	assert(0);
+	assert(structHead->tail);
+	assert(0);
+	for (FieldList p = structHead->tail; p != NULL; p = p->tail)
+	{
+		assert(0);
+		assert(p->type);
+		assert(0);
+		switch (p->type->kind)
+		{
+		case BASIC: size += sizeof(int); break;
+		case ARRAY:
+		{
+			if (p->type->u.array.elem->kind == ARRAY)
+			{
+				printf("Code contains vriables of multi-dimensional arrry type\n");
+				exit(0);
+			}
+			size += sizeof(int) * p->type->u.array.size;
+			break;
+		}
+		case STRUCTURE: size += get_structSize(p->type->u.structure);
+		default: assert(0);
+		}
+	}
+	return size;
+}
+
+int get_arraySize(FieldList array)
+{
+	Type subArray = array->type->u.array.elem;
+	int size = 0;
+	switch (subArray->kind)
+	{
+	case BASIC : size =  sizeof(int) * array->type->u.array.size; break;
+	case ARRAY : printf("Code contains vriables of multi-dimensional arrry type\n"); exit(0);
+	case STRUCTURE : size = get_structSize(subArray->u.structure) * array->type->u.array.size; break;
+	default : assert(0);
+	}
+	return size;
+}
+
+int SizeOfType(Type type)
+{
+	int size = 0;
+	switch (type->kind)
+	{
+	case BASIC : return sizeof(int);
+	case ARRAY : return SizeOfType(type->u.array.elem) * type->u.array.size;
+	case STRUCTURE : 
+	{
+		for (FieldList p = type->u.structure->tail; p != NULL; p = p->tail)
+		{
+			size += SizeOfType(p->type);
+		}
+		return size;
+	}
+	default : assert(0);
+	}
+	return size;
+}
+
 void printOperand(Operand operand)
 {
 	if (operand.kind == TEMP) {
@@ -151,7 +235,10 @@ InterCodes* get_tail(InterCodes* codes)
 //link intercode
 InterCodes* linkInterCode(InterCodes* code1, InterCodes* code2)
 {
-	assert(code1);
+	//assert(code1);
+	if (NULL == code1)
+		return code2;
+
 	get_tail(code1)->next = code2;
 	return code1;
 }
@@ -161,17 +248,18 @@ int newLabelId() { return labelId++; }
 
 enum RELOP_kind get_relop(SyntaxTreeNode *node)
 {
-	if (strcmp(node->content, "<"))
+	printf("%s\n", node->content);
+	if (strcmp(node->content, "<") == 0)
 		return LT;
-	else if (strcmp(node->content, "<="))
+	else if (strcmp(node->content, "<=") == 0)
 		return LE;
-	else if (strcmp(node->content, "=="))
+	else if (strcmp(node->content, "==") == 0)
 		return EQ;
-	else if (strcmp(node->content, "!="))
+	else if (strcmp(node->content, "!=") == 0)
 		return NE;
-	else if (strcmp(node->content, ">="))
+	else if (strcmp(node->content, ">=") == 0)
 		return GE;
-	else if (strcmp(node->content, ">"))
+	else if (strcmp(node->content, ">") == 0)
 		return GT;
 	assert(0);
 	return GT;
@@ -224,6 +312,44 @@ InterCodes* translate_ExtDef(SyntaxTreeNode *ExtDef)
 	return NULL;
 }
 
+InterCodes* translate_VarDec(SyntaxTreeNode *VarDec)
+{
+	//VarDec -> ID
+	printf("int VarDec %d\n",VarDec->productionNum);
+	if (0 == VarDec->productionNum)
+	{
+		FieldList symbol = lookupSymbol(VarDec->children[0]);
+		if (STRUCTURE == symbol->type->kind)
+		{
+			int size = SizeOfType(symbol->type);
+			InterCodes *codes = newInterCodes();
+			codes->code.kind = IC_DEC;
+			codes->code.result.kind = VARIABLE;
+			codes->code.result.u.name = symbol->name;
+			codes->code.arg1.kind = CONSTANT;
+			codes->code.arg1.u.value = size;
+			return codes;
+		}
+		else if (ARRAY == symbol->type->kind)
+		{
+			//int size = SizeOfType(symbol->type);
+			int size = get_arraySize(symbol);
+			InterCodes *codes = newInterCodes();
+			codes->code.kind = IC_DEC;
+			codes->code.result.kind = VARIABLE;
+			codes->code.result.u.name = symbol->name;
+			codes->code.arg1.kind = CONSTANT;
+			codes->code.arg1.u.value = size;
+			return codes;
+		}
+		else{
+			return NULL;
+		}
+	}
+	else
+		return translate_VarDec(VarDec->children[0]);
+}
+
 InterCodes* translate_FunDec(SyntaxTreeNode *FunDec)
 {
 	printf("in FunDec\n");
@@ -253,17 +379,25 @@ InterCodes* translate_VarList(SyntaxTreeNode *VarList)
 InterCodes* translate_ParamDec(SyntaxTreeNode *ParamDec)
 {
 	printf("in ParamDec\n");
+	// only support basic/struct type varible, not arrry type.
+	assert(ParamDec->children[1]->productionNum == 0);
+	FieldList symbol = lookupSymbol(ParamDec->children[1]->children[0]);
 	InterCodes *codes = newInterCodes();
 	codes->code.kind = IC_PARAM;
 	codes->code.result.kind = VARIABLE;
-	codes->code.result.u.var_id = newTempId();
+	codes->code.result.u.name = symbol->name;
 	return codes;
 }
 
 InterCodes* translate_CompSt(SyntaxTreeNode *CompSt)
 {
 	printf("in CompSt\n");
-	return translate_StmtList(CompSt->children[2]);
+	assert(CompSt!=NULL);
+	InterCodes *code1 = translate_DefList(CompSt->children[1]);
+	InterCodes *code2 = translate_StmtList(CompSt->children[2]);
+	if (code1 == NULL)
+		return code2;
+	return linkInterCode(code1, code2);
 }
 
 InterCodes* translate_StmtList(SyntaxTreeNode *StmtList)
@@ -316,7 +450,9 @@ InterCodes* translate_Stmt(SyntaxTreeNode *Stmt)
 		            linkInterCode(
 		                linkInterCode(code1, gen_Label(label1)),
 		                linkInterCode(code2, gen_Goto(label3))),
-		            linkInterCode(code3, gen_Label(label3))
+		            linkInterCode(
+		                linkInterCode(gen_Label(label2), code3),
+		                gen_Label(label3))
 		        );
 	}
 	case 5:
@@ -327,14 +463,55 @@ InterCodes* translate_Stmt(SyntaxTreeNode *Stmt)
 		InterCodes *code1 = translate_Cond(Stmt->children[2], label1, label2);
 		InterCodes *code2 = translate_Stmt(Stmt->children[4]);
 		return linkInterCode(
-		            linkInterCode(
-		                linkInterCode(gen_Label(label1), code1),
-		                linkInterCode(gen_Label(label2), code2)),
-		            linkInterCode(gen_Goto(label1), gen_Label(label3))
-		        );
+		           linkInterCode(
+		               linkInterCode(gen_Label(label1), code1),
+		               linkInterCode(gen_Label(label2), code2)),
+		           linkInterCode(gen_Goto(label1), gen_Label(label3))
+		       );
 	}
 	default: assert(0);
 	}
+}
+
+InterCodes* translate_DefList(SyntaxTreeNode *DefList)
+{
+	if (NULL == DefList)
+		return NULL;
+	printf("in DefList %d\n", DefList->productionNum);
+	InterCodes *code1 = translate_Def(DefList->children[0]);
+	InterCodes *code2 = translate_DefList(DefList->children[1]);
+	return linkInterCode(code1, code2);
+
+}
+
+InterCodes* translate_Def(SyntaxTreeNode *Def)
+{
+	printf("in Def \n");
+	return translate_DecList(Def->children[1]);
+}
+
+InterCodes* translate_DecList(SyntaxTreeNode *DecList)
+{
+	printf("in DecList\n");
+	assert(DecList);
+	if(DecList->productionNum==0)
+		return translate_Dec(DecList->children[0]);
+	else
+	{
+		InterCodes *code1 = translate_Dec(DecList->children[0]);
+		InterCodes *code2 = translate_DecList(DecList->children[1]);
+		return linkInterCode(code1, code2);
+	}
+}
+
+InterCodes* translate_Dec(SyntaxTreeNode *Dec)
+{
+	printf("in Dec\n");
+	//Dec -> VarDec ASSIGNOP Exp
+	assert(Dec);
+	if (Dec->productionNum == 1)
+		return NULL;
+	return translate_VarDec(Dec->children[0]);
 }
 
 InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
@@ -342,9 +519,49 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 	printf("in Exp %d\n", Exp->productionNum);
 	switch (Exp->productionNum)
 	{
-	case 0:/*Exp -> Exp ASSIGNOP Exp*/
+	case 0:/*Exp -> Exp1 ASSIGNOP Exp2*/
 	{
-		if (Exp->children[0]->productionNum == 15)
+		if(Exp->children[0]->productionNum == 13) /*Exp1 -> Exp LB Exp RB*/
+		{
+			assert(0);
+		}
+		else if(Exp->children[0]->productionNum == 14) /*Exp1 -> Exp DOT EXP*/
+		{
+			int t1 = newTempId();
+			int t2 = newTempId();
+			int t3 = newTempId();
+			//not support like temp[1].a;  the array of struct;
+			assert(Exp->children[0]->children[0]->productionNum==15);
+			InterCodes *code1 = translate_Exp(Exp->children[0]->children[0], t1);
+			InterCodes *code2 = translate_Exp(Exp->children[2], t2);
+
+			InterCodes *code3 = newInterCodes();
+			code3->code.kind = IC_ADDR;
+			code3->code.result.kind = TEMP;
+			code3->code.result.u.var_id = t3;
+			code3->code.arg1.kind = TEMP;
+			code3->code.arg1.u.var_id = t1;
+
+			InterCodes *code4 = newInterCodes();
+			code4->code.kind = IC_DEREF_L;
+			code4->code.result.kind = TEMP;
+			code4->code.result.u.var_id = t3;
+			code4->code.arg1.kind = TEMP;
+			code4->code.arg1.u.var_id = t2;
+
+			InterCodes *code5 = newInterCodes();
+			code5->code.kind = IC_ASSIGN;
+			code5->code.result.kind = TEMP;
+			code5->code.result.u.var_id = place;
+			code5->code.arg1.kind = TEMP;
+			code5->code.arg1.u.var_id = t3;	
+			return linkInterCode(
+						linkInterCode(
+							linkInterCode(code1,code2),
+							linkInterCode(code3,code4)),
+						code5);
+		}
+		else if (Exp->children[0]->productionNum == 15) /* Exp1->ID*/
 		{
 			FieldList symbol = lookupSymbol(Exp->children[0]->children[0]);
 			int t1 = newTempId();
@@ -355,37 +572,124 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 			code2->code.result.u.name = symbol->name;
 			code2->code.arg1.kind = TEMP;
 			code2->code.arg1.u.var_id = t1;
-			return linkInterCode(code1, code2);
+
+			InterCodes *code3 = newInterCodes();
+			code3->code.kind = IC_ASSIGN;
+			code3->code.result.kind = TEMP;
+			code3->code.result.u.var_id = place;
+			code2->code.arg1.kind = VARIABLE;
+			code2->code.arg1.u.name = symbol->name;
+			return linkInterCode(linkInterCode(code1, code2),code3);
 		}
+		else
+			assert(0);
 		break;
 	}
 	case 1:/*Exp -> Exp AND Exp*/
 	case 2:/*Exp -> Exp OR Exp*/
 	case 3:/*Exp -> Exp RELOP Exp*/
+	case 10: /*Exp -> NOT Exp*/
 	{
-		int t1 = newLabelId();
-		int t2 = newLabelId();
-		InterCodes* code1 = translate_Cond(Exp, t1, t2);
-		return code1;
-		break;
+		int label1 = newLabelId();
+		int label2 = newLabelId();
+		InterCodes* code0 = newInterCodes();
+		code0->code.kind = IC_ASSIGN;
+		code0->code.result.kind = TEMP;
+		code0->code.result.u.var_id = place;
+		code0->code.arg1.kind = CONSTANT;
+		code0->code.arg1.u.value = 0;
+		InterCodes* code1 = translate_Cond(Exp, label1, label2);
+		InterCodes* code2 = newInterCodes();
+		code0->code.kind = IC_ASSIGN;
+		code0->code.result.kind = TEMP;
+		code0->code.result.u.var_id = place;
+		code0->code.arg1.kind = CONSTANT;
+		code0->code.arg1.u.value = 1;
+		return linkInterCode(
+		           linkInterCode(
+		               linkInterCode(code0, code1),
+		               linkInterCode(gen_Label(label1), code2)),
+		           gen_Label(label2)
+		       );
 	}
 	case 4:/*Exp -> Exp PLUS Exp*/
+	{
+		int t1 = newTempId();
+		int t2 = newTempId();
+		InterCodes* code1 = translate_Exp(Exp->children[0], t1);
+		InterCodes* code2 = translate_Exp(Exp->children[2], t2);
+		InterCodes* code3 = newInterCodes();
+		code3->code.kind = IC_PLUS;
+		code3->code.result.kind = TEMP;
+		code3->code.result.u.var_id = place;
+		code3->code.arg1.kind = TEMP;
+		code3->code.arg1.u.var_id = t1;
+		code3->code.arg2.kind = TEMP;
+		code3->code.arg2.u.var_id = t2;
+
+		return linkInterCode(linkInterCode(code1, code2), code3);
+	}
 	case 5:/*Exp -> Exp MINUS Exp*/
+	{
+		int t1 = newTempId();
+		int t2 = newTempId();
+		InterCodes* code1 = translate_Exp(Exp->children[0], t1);
+		InterCodes* code2 = translate_Exp(Exp->children[2], t2);
+		InterCodes* code3 = newInterCodes();
+		code3->code.kind = IC_MINUS;
+		code3->code.result.kind = TEMP;
+		code3->code.result.u.var_id = place;
+		code3->code.arg1.kind = TEMP;
+		code3->code.arg1.u.var_id = t1;
+		code3->code.arg2.kind = TEMP;
+		code3->code.arg2.u.var_id = t2;
+
+		return linkInterCode(linkInterCode(code1, code2), code3);
+	}
 	case 6:/*Exp -> Exp STAR Exp*/
+	{
+		int t1 = newTempId();
+		int t2 = newTempId();
+		InterCodes* code1 = translate_Exp(Exp->children[0], t1);
+		InterCodes* code2 = translate_Exp(Exp->children[2], t2);
+		InterCodes* code3 = newInterCodes();
+		code3->code.kind = IC_MUL;
+		code3->code.result.kind = TEMP;
+		code3->code.result.u.var_id = place;
+		code3->code.arg1.kind = TEMP;
+		code3->code.arg1.u.var_id = t1;
+		code3->code.arg2.kind = TEMP;
+		code3->code.arg2.u.var_id = t2;
+
+		return linkInterCode(linkInterCode(code1, code2), code3);
+	}
 	case 7:/*Exp -> Exp DIV Exp*/
 	{
-		break;
+		int t1 = newTempId();
+		int t2 = newTempId();
+		InterCodes* code1 = translate_Exp(Exp->children[0], t1);
+		InterCodes* code2 = translate_Exp(Exp->children[2], t2);
+		InterCodes* code3 = newInterCodes();
+		code3->code.kind = IC_DIV;
+		code3->code.result.kind = TEMP;
+		code3->code.result.u.var_id = place;
+		code3->code.arg1.kind = TEMP;
+		code3->code.arg1.u.var_id = t1;
+		code3->code.arg2.kind = TEMP;
+		code3->code.arg2.u.var_id = t2;
+
+		return linkInterCode(linkInterCode(code1, code2), code3);
 	}
 	case 8: /*Exp -> LP Exp RP*/
 	{
-		break;
+		return translate_Exp(Exp->children[1], place);
 	}
 	case 9:/*Exp -> MINUS Exp*/
 	{
 		int t1 = newTempId();
 		InterCodes* code1 = translate_Exp(Exp->children[1], t1);
 		InterCodes* code2 = newInterCodes();
-		code2->code.kind = IC_ASSIGN;
+		code2->code.kind = IC_MINUS;
 		code2->code.result.kind = TEMP;
 		code2->code.result.u.var_id = place;
 		code2->code.arg1.kind = CONSTANT;
@@ -393,10 +697,6 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 		code2->code.arg2.kind = TEMP;
 		code2->code.arg2.u.var_id = t1;
 		return linkInterCode(code1, code2);
-	}
-	case 10:/*Exp -> NOT Exp*/
-	{
-		break;
 	}
 	case 11:/*Exp -> ID LP Args RP*/
 	{
@@ -459,6 +759,37 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 	}
 	case 14:/*Exp -> Exp DOT ID*/
 	{
+		assert(Exp->children[0]->productionNum==15);
+		int offset = 0;
+		FieldList symbol = lookupSymbol(Exp->children[0]->children[0]);
+		//Type symbol = Exp->children[0]->children[0]->type;
+		assert(symbol->type->u.structure->tail);
+		for(FieldList p = symbol->type->u.structure->tail;p!=NULL;p=p->tail)
+		{
+			if(strcmp(p->name,Exp->children[2]->content)==0)
+				break;
+			offset += SizeOfType(p->type);
+		}
+		int t1 = newTempId();
+		int t2 = newTempId();
+		InterCodes* code1 = translate_Exp(Exp->children[0],t1);
+		InterCodes* code2 = newInterCodes();
+		code2->code.kind = IC_PLUS;
+		code2->code.result.kind = TEMP;
+		code2->code.result.u.var_id = t2;
+		code2->code.arg1.kind = TEMP;
+		code2->code.arg1.u.var_id = t1;
+		code2->code.arg2.kind = CONSTANT;
+		code2->code.arg2.u.var_id = offset;
+
+		InterCodes* code3 = newInterCodes();
+		code3->code.kind = IC_DEREF_R;
+		code3->code.result.kind = TEMP;
+		code3->code.result.u.var_id = place;
+		code3->code.arg1.kind = TEMP;
+		code3->code.arg1.u.var_id = t2;
+
+		return linkInterCode(linkInterCode(code1,code2),code3);
 		break;
 	}
 	case 15:/*Exp -> ID*/
@@ -490,6 +821,7 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 	}
 	case 17: /*Exp -> FLOAT*/
 	{
+		assert(0);
 		break;
 	}
 	}
@@ -500,7 +832,23 @@ InterCodes* translate_Cond(SyntaxTreeNode *Exp, int label_true, int label_false)
 	printf("in Cond\n");
 	switch (Exp->productionNum)
 	{
-	case 3:
+	case 1:/*Exp -> Exp AND Exp*/
+	{
+		int label1 = newLabelId();
+		InterCodes* code1 = translate_Cond(Exp->children[0], label1, label_false);
+		InterCodes* code2 = translate_Cond(Exp->children[2], label_true, label_false);
+		return linkInterCode(
+		           linkInterCode(code1, gen_Label(label1)),
+		           code2);
+	}
+	case 2:/*Exp -> Exp OR Exp*/
+	{
+		int label1 = newLabelId();
+		InterCodes* code1 = translate_Cond(Exp->children[0], label_true, label1);
+		InterCodes* code2 = translate_Cond(Exp->children[2], label_true, label_false);
+		return linkInterCode(linkInterCode(code1, gen_Label(label1)), code2);
+	}
+	case 3:/*Exp -> Exp Relop Exp*/
 	{
 		int t1 = newTempId();
 		int t2 = newTempId();
@@ -509,6 +857,7 @@ InterCodes* translate_Cond(SyntaxTreeNode *Exp, int label_true, int label_false)
 		InterCodes* code3 = newInterCodes();
 		code3->code.kind = IC_RELOP;
 		code3->code.relop = get_relop(Exp->children[1]);
+		printf("%d\n", code3->code.relop);
 		code3->code.result.kind = LABEL;
 		code3->code.result.u.label_id = label_true;
 
@@ -528,25 +877,62 @@ InterCodes* translate_Cond(SyntaxTreeNode *Exp, int label_true, int label_false)
 		           linkInterCode(code1, code2),
 		           linkInterCode(code3, code4));
 	}
-
+	case 10: /*Exp -> NOT Exp*/
+	{
+		return translate_Cond(Exp, label_false, label_true);
+	}
+	default:/*other case*/
+	{
+		int t1 = newTempId();
+		InterCodes* code1 = translate_Exp(Exp, t1);
+		InterCodes* code2 = newInterCodes();
+		code2->code.kind = IC_RELOP;
+		code2->code.result.kind = LABEL;
+		code2->code.result.u.label_id = label_true;
+		code2->code.arg1.kind = TEMP;
+		code2->code.arg1.u.var_id = t1;
+		code2->code.arg2.kind = CONSTANT;
+		code2->code.arg2.u.value = 0;
+		return linkInterCode(linkInterCode(code1, code2), gen_Label(label_false));
+	}
 	}
 }
 
 InterCodes* translate_Args(SyntaxTreeNode *Args, ArgList* arglist)
 {
 	printf("in Arg %d\n", Args->productionNum);
-	if (Args->productionNum == 1)
+	if (Args->productionNum == 1) /*Args -> Exp*/
 	{
 		int t1 = newTempId();
-		arglist->id[arglist->count++] = t1;
-		return translate_Exp(Args->children[0], t1);
+		if(Args->children[0]->type->kind==STRUCTURE)
+		{
+			InterCodes *code1 =translate_Exp(Args->children[0], t1);
+			int t2 = newTempId();
+			assert(Args->children[0]->productionNum==15);
+			FieldList symbol = lookupSymbol(Args->children[0]->children[0]);
+			assert(symbol);
+			InterCodes *code2 = newInterCodes();
+			code2->code.kind = IC_ADDR;
+			code2->code.result.kind = TEMP;
+			code2->code.result.u.var_id = t2;
+			code2->code.arg1.kind = TEMP;
+			code2->code.arg1.u.var_id = t1;
+
+			arglist->id[arglist->count++] = t2;	
+			return linkInterCode(code1,code2);
+		}
+		else{
+			int t1 = newTempId();
+			arglist->id[arglist->count++] = t1;
+			return translate_Exp(Args->children[0], t1);
+		}
 	}
-	else
+	else /*Args -> Exp COMMA Args*/
 	{
 		int t1 = newTempId();
 		InterCodes *code1 = translate_Exp(Args->children[0], t1);
 		arglist->id[arglist->count++] = t1;
-		InterCodes *code2 = translate_Exp(Args->children[2], t1);
+		InterCodes *code2 = translate_Args(Args->children[2],arglist);
 		return linkInterCode(code1, code2);
 	}
 }

@@ -21,18 +21,19 @@ struct Operand_
 };
 
 struct InterCode {
+	//Three address codes
 	enum {
 		IC_LABEL,   // LABEL result :
 		IC_FUNC,    // FUNCTION result :
 		IC_ASSIGN,  // result := arg1
-		IC_ADD,     // result := arg1 + arg2
-		IC_SUB,     // result := arg1 - arg2
+		IC_PLUS,    // result := arg1 + arg2
+		IC_MINUS,   // result := arg1 - arg2
 		IC_MUL,     // result := arg1 * arg2
 		IC_DIV,     // result := arg1 / arg2
 
 		IC_ADDR,    // result  := &arg1
-		IC_DEREF_R, // result  := *arg1, dereference at right :-)
-		IC_DEREF_L, // *result :=  arg1, dereference at left :-)
+		IC_DEREF_R, // result  := *arg1, dereference at right
+		IC_DEREF_L, // *result :=  arg1, dereference at left
 
 		IC_GOTO,    // GOTO result
 		IC_RELOP,   // IF arg1 [relop] arg2 GOTO result
@@ -48,6 +49,7 @@ struct InterCode {
 
 	enum RELOP_kind relop;
 	struct Operand_ result, arg1, arg2;
+	int mollocSize;
 };
 
 struct InterCodes_ {
@@ -87,6 +89,9 @@ InterCodes* translate_VarDec(SyntaxTreeNode *VarDec);
 InterCodes* translate_FunDec(SyntaxTreeNode *FunDec);
 InterCodes* translate_VarList(SyntaxTreeNode *VarList);
 InterCodes* translate_ParamDec(SyntaxTreeNode *ParamDec);
-
+InterCodes* translate_DefList(SyntaxTreeNode *DefList);
+InterCodes* translate_Def(SyntaxTreeNode *Def);
+InterCodes* translate_DecList(SyntaxTreeNode *DecList);
+InterCodes* translate_Dec(SyntaxTreeNode *Dec);
 void printLink();
 #endif
