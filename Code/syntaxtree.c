@@ -87,10 +87,8 @@ void output(SyntaxTreeNode* p, int indentlength)
 	//printtype(p->type);
 	if (p == NULL)
 		return;
-	printf("%d ", p->productionNum);
 	for (int i = 0; i < indentlength; ++i)
 		printf(" ");
-	printf("%d ",p->type->isParameter);
 	if (p->childrenNum > 0) /* non-teminal sysbol*/
 	{
 		printf("%s (%d)\n", p->name, p->firstline);

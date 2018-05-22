@@ -104,14 +104,13 @@ void traverseTree(SyntaxTreeNode* root)
 			root->type->kind = STRUCTURE;
 			root->type->u.structure = (FieldList)malloc(sizeof(struct FieldList_));
 			buildStruct(root->children[3], root->type->u.structure, root->type->u.structure);
-			for(FieldList p = root->type->u.structure;p!=NULL;p=p->tail)
+			for(FieldList p = root->type->u.structure->tail;p!=NULL;p=p->tail)
 			{
-				if(p->type==NULL)
-					printf("NULL ");
-				else
-					printf("%s", p->name);
+
+				printf("%s", p->name);
+				printtype(p->type);
 			}
-			printf("\n");
+
 			if (root->children[1] != NULL) //OptTag -> ID
 			{
 				root->children[1]->type = root->type;
@@ -692,6 +691,10 @@ void buildStruct(SyntaxTreeNode * root, FieldList head, FieldList current)
 		while (strcmp(p->name, "ID") != 0 && p != NULL)
 			p = p->children[0];
 		printf("Error type 15 at line %d: Initialized struct field \"%s\".\n", p->firstline, p->content);
+	}
+	if(strcmp(root->name, "Specifier") == 0){
+		//struct Type type;不把Type加到结构 体的域里，跳过，否则Type也是ID
+		return;
 	}
 	if (strcmp(root->name, "ID") == 0)
 	{

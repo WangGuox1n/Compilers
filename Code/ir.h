@@ -93,5 +93,9 @@ InterCodes* translate_DefList(SyntaxTreeNode *DefList);
 InterCodes* translate_Def(SyntaxTreeNode *Def);
 InterCodes* translate_DecList(SyntaxTreeNode *DecList);
 InterCodes* translate_Dec(SyntaxTreeNode *Dec);
+InterCodes* translate_DEREF_L(SyntaxTreeNode *Exp,int place);
+InterCodes* translate_DEREF_R(SyntaxTreeNode *Exp,int place);
+
+SyntaxTreeNode * getId(SyntaxTreeNode *Exp);
 void printLink();
 #endif
