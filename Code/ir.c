@@ -47,19 +47,19 @@ void gen_InterCode(SyntaxTreeNode *root)
 			printOperand(p->code.arg1);  printf(" / "); printOperand(p->code.arg2);
 			break;
 		}
-		case IC_ADDR:{
+		case IC_ADDR: {
 			printOperand(p->code.result); printf(" := &");
 			printOperand(p->code.arg1);
 			break;
 		}
-		case IC_DEREF_R:{
+		case IC_DEREF_R: {
 			printOperand(p->code.result); printf(" := *");
 			printOperand(p->code.arg1);
 			break;
 		}
-		case IC_DEREF_L:{
-			printf("*");   printOperand(p->code.result); 
-			printf(" := ");printOperand(p->code.arg1);
+		case IC_DEREF_L: {
+			printf("*");   printOperand(p->code.result);
+			printf(" := "); printOperand(p->code.arg1);
 			break;
 		}
 		case IC_GOTO: {
@@ -82,7 +82,7 @@ void gen_InterCode(SyntaxTreeNode *root)
 			break;
 		}
 		case IC_DEC: {
-			printf("DEC ");printOperand(p->code.result);printf(" %d", p->code.arg1.u.value);
+			printf("DEC "); printOperand(p->code.result); printf(" %d", p->code.arg1.u.value);
 			break;
 		}
 		case IC_RETURN: {
@@ -182,7 +182,7 @@ int SizeOfType(Type type)
 	{
 	case BASIC : return sizeof(int);
 	case ARRAY : return SizeOfType(type->u.array.elem) * type->u.array.size;
-	case STRUCTURE : 
+	case STRUCTURE :
 	{
 		for (FieldList p = type->u.structure->tail; p != NULL; p = p->tail)
 		{
@@ -207,7 +207,10 @@ void printOperand(Operand operand)
 		printf("#%d", operand.u.value);
 	} else if (operand.kind == LABEL) {
 		printf("label%d", operand.u.label_id);
-	} else {
+	} else if (operand.kind == ADDRESS) {
+		printf("&v_%s", operand.u.name);
+	}
+	else {
 		assert(0);
 	}
 }
@@ -314,8 +317,8 @@ InterCodes* translate_ExtDef(SyntaxTreeNode *ExtDef)
 
 InterCodes* translate_VarDec(SyntaxTreeNode *VarDec)
 {
-	//VarDec -> ID
-	printf("int VarDec %d\n",VarDec->productionNum);
+	/*这里仅用于解析定义变量的时候内存空间的申请操作，函数形参留在Param里解析*/
+	printf("int VarDec %d\n", VarDec->productionNum);
 	if (0 == VarDec->productionNum)
 	{
 		FieldList symbol = lookupSymbol(VarDec->children[0]);
@@ -332,8 +335,8 @@ InterCodes* translate_VarDec(SyntaxTreeNode *VarDec)
 		}
 		else if (ARRAY == symbol->type->kind)
 		{
-			//int size = SizeOfType(symbol->type);
-			int size = get_arraySize(symbol);
+			int size = SizeOfType(symbol->type);
+			//int size = get_arraySize(symbol);
 			InterCodes *codes = newInterCodes();
 			codes->code.kind = IC_DEC;
 			codes->code.result.kind = VARIABLE;
@@ -342,7 +345,7 @@ InterCodes* translate_VarDec(SyntaxTreeNode *VarDec)
 			codes->code.arg1.u.value = size;
 			return codes;
 		}
-		else{
+		else {
 			return NULL;
 		}
 	}
@@ -380,8 +383,21 @@ InterCodes* translate_ParamDec(SyntaxTreeNode *ParamDec)
 {
 	printf("in ParamDec\n");
 	// only support basic/struct type varible, not arrry type.
-	assert(ParamDec->children[1]->productionNum == 0);
-	FieldList symbol = lookupSymbol(ParamDec->children[1]->children[0]);
+	//assert(ParamDec->children[1]->productionNum == 0);
+	ParamDec->type->isParameter = 1;
+	SyntaxTreeNode *VarDec = ParamDec->children[1];
+	SyntaxTreeNode *ID;
+	if(0 == VarDec->productionNum){
+		ID = VarDec->children[0];
+	}else{
+		if(1 == VarDec->children[0]->productionNum){
+			printf("Cannot translate:Code contains vriables of multi-dimensional arrry type.\n"); 
+			assert(0);
+		}
+		ID = VarDec->children[0]->children[0];
+	}
+	assert(ID);
+	FieldList symbol = lookupSymbol(ID);
 	InterCodes *codes = newInterCodes();
 	codes->code.kind = IC_PARAM;
 	codes->code.result.kind = VARIABLE;
@@ -392,7 +408,7 @@ InterCodes* translate_ParamDec(SyntaxTreeNode *ParamDec)
 InterCodes* translate_CompSt(SyntaxTreeNode *CompSt)
 {
 	printf("in CompSt\n");
-	assert(CompSt!=NULL);
+	assert(CompSt != NULL);
 	InterCodes *code1 = translate_DefList(CompSt->children[1]);
 	InterCodes *code2 = translate_StmtList(CompSt->children[2]);
 	if (code1 == NULL)
@@ -460,7 +476,7 @@ InterCodes* translate_Stmt(SyntaxTreeNode *Stmt)
 		int label1 = newLabelId();
 		int label2 = newLabelId();
 		int label3 = newLabelId();
-		InterCodes *code1 = translate_Cond(Stmt->children[2], label1, label2);
+		InterCodes *code1 = translate_Cond(Stmt->children[2], label2, label3);
 		InterCodes *code2 = translate_Stmt(Stmt->children[4]);
 		return linkInterCode(
 		           linkInterCode(
@@ -487,6 +503,7 @@ InterCodes* translate_DefList(SyntaxTreeNode *DefList)
 InterCodes* translate_Def(SyntaxTreeNode *Def)
 {
 	printf("in Def \n");
+	Def->type->isParameter = 0;
 	return translate_DecList(Def->children[1]);
 }
 
@@ -494,12 +511,12 @@ InterCodes* translate_DecList(SyntaxTreeNode *DecList)
 {
 	printf("in DecList\n");
 	assert(DecList);
-	if(DecList->productionNum==0)
+	if (DecList->productionNum == 0)
 		return translate_Dec(DecList->children[0]);
 	else
 	{
 		InterCodes *code1 = translate_Dec(DecList->children[0]);
-		InterCodes *code2 = translate_DecList(DecList->children[1]);
+		InterCodes *code2 = translate_DecList(DecList->children[2]);
 		return linkInterCode(code1, code2);
 	}
 }
@@ -509,9 +526,26 @@ InterCodes* translate_Dec(SyntaxTreeNode *Dec)
 	printf("in Dec\n");
 	//Dec -> VarDec ASSIGNOP Exp
 	assert(Dec);
-	if (Dec->productionNum == 1)
-		return NULL;
-	return translate_VarDec(Dec->children[0]);
+	if (0 == Dec->productionNum)
+		return translate_VarDec(Dec->children[0]);
+	else
+	{
+		//只支持基本类型在定义的时候初始化
+		assert(0 == Dec->children[0]->productionNum);
+		assert(BASIC == Dec->children[0]->type->kind);
+
+		int t1 = newTempId();
+		//Dec -> VarDec ASSIGNOP Exp || VarDec -> ID
+		FieldList symbol = lookupSymbol(Dec->children[0]->children[0]);
+        InterCodes* code1 = translate_Exp(Dec->children[2],t1);
+        InterCodes* code2 = newInterCodes();
+        code2->code.kind = IC_ASSIGN;
+        code2->code.result.kind = VARIABLE;
+        code2->code.result.u.name = symbol->name;
+        code2->code.arg1.kind = TEMP;
+        code2->code.arg1.u.var_id = t1;
+        return linkInterCode(code1,code2);
+	}
 }
 
 InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
@@ -521,26 +555,86 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 	{
 	case 0:/*Exp -> Exp1 ASSIGNOP Exp2*/
 	{
-		if(Exp->children[0]->productionNum == 13) /*Exp1 -> Exp LB Exp RB*/
+		if (Exp->children[0]->productionNum == 13) /*Exp1 -> Exp LB Exp RB*/
 		{
-			assert(0);
+			int t1 = newTempId();
+			int t2 = newTempId();
+			int t3 = newTempId();
+			int t4 = newTempId();
+			int t5 = newTempId();
+
+			if(Exp->children[0]->children[0]->productionNum != 15){
+				printf("Cannot translate:Code contains vriables of multi-dimensional arrry type.\n"); 
+				assert(0);
+			}
+			InterCodes *code1 = translate_Exp(Exp->children[0]->children[0], t1);
+			InterCodes *code2 = translate_Exp(Exp->children[0]->children[2], t2);
+			InterCodes *code3 = translate_Exp(Exp->children[2], t3);
+			FieldList symbol = lookupSymbol(Exp->children[0]->children[0]->children[0]);
+
+			InterCodes* code4 = newInterCodes();  
+	        code4->code.kind = IC_MUL;        //计算偏移量
+	        code4->code.result.kind = TEMP;
+	        code4->code.result.u.var_id = t4;
+	        code4->code.arg1.kind = TEMP;
+	        code4->code.arg1.u.var_id = t2;
+	        code4->code.arg2.kind = CONSTANT;
+	        //偏移量应该以数组单个元素大小为基础，而不是整个数组的大小
+	        code4->code.arg2.u.value = SizeOfType(symbol->type->u.array.elem);
+
+	        InterCodes* code5 = newInterCodes();  
+	        code5->code.kind = IC_PLUS;        
+	        code5->code.result.kind = TEMP;
+	        code5->code.result.u.var_id = t5;
+	        code5->code.arg1.kind = TEMP;
+	        code5->code.arg1.u.var_id = t1;
+	        code5->code.arg2.kind = TEMP;
+	        code5->code.arg2.u.var_id = t4;
+
+	        InterCodes *code6 = newInterCodes();
+			code6->code.kind = IC_DEREF_L;
+			code6->code.result.kind = TEMP;
+			code6->code.result.u.var_id = t5;
+			code6->code.arg1.kind = TEMP;
+			code6->code.arg1.u.var_id = t3;
+
+			code1 = linkInterCode(code1,code2);
+			code3 = linkInterCode(code3,code4);
+			code5 = linkInterCode(code5,code6);
+			code1 = linkInterCode(code1,code3);
+
+			return linkInterCode(code1,code5);
 		}
-		else if(Exp->children[0]->productionNum == 14) /*Exp1 -> Exp DOT EXP*/
+		else if (Exp->children[0]->productionNum == 14) /*Exp1 -> Exp DOT ID*/
 		{
 			int t1 = newTempId();
 			int t2 = newTempId();
 			int t3 = newTempId();
 			//not support like temp[1].a;  the array of struct;
-			assert(Exp->children[0]->children[0]->productionNum==15);
+			assert(Exp->children[0]->children[0]->productionNum == 15);
 			InterCodes *code1 = translate_Exp(Exp->children[0]->children[0], t1);
 			InterCodes *code2 = translate_Exp(Exp->children[2], t2);
 
+
+			int offset = 0;
+			FieldList symbol = lookupSymbol(Exp->children[0]->children[0]->children[0]);
+			//Type symbol = Exp->children[0]->children[0]->type;
+			assert(symbol->type->u.structure->tail);
+			for (FieldList p = symbol->type->u.structure->tail; p != NULL; p = p->tail)
+			{
+				if (strcmp(p->name, Exp->children[0]->children[2]->content) == 0)
+					break;
+				offset += SizeOfType(p->type);
+			}
+
 			InterCodes *code3 = newInterCodes();
-			code3->code.kind = IC_ADDR;
+			code3->code.kind = IC_PLUS;
 			code3->code.result.kind = TEMP;
 			code3->code.result.u.var_id = t3;
 			code3->code.arg1.kind = TEMP;
 			code3->code.arg1.u.var_id = t1;
+			code3->code.arg2.kind = CONSTANT;
+			code3->code.arg2.u.var_id = offset;
 
 			InterCodes *code4 = newInterCodes();
 			code4->code.kind = IC_DEREF_L;
@@ -549,17 +643,7 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 			code4->code.arg1.kind = TEMP;
 			code4->code.arg1.u.var_id = t2;
 
-			InterCodes *code5 = newInterCodes();
-			code5->code.kind = IC_ASSIGN;
-			code5->code.result.kind = TEMP;
-			code5->code.result.u.var_id = place;
-			code5->code.arg1.kind = TEMP;
-			code5->code.arg1.u.var_id = t3;	
-			return linkInterCode(
-						linkInterCode(
-							linkInterCode(code1,code2),
-							linkInterCode(code3,code4)),
-						code5);
+			return linkInterCode(linkInterCode(code1, code2), linkInterCode(code3, code4));
 		}
 		else if (Exp->children[0]->productionNum == 15) /* Exp1->ID*/
 		{
@@ -577,9 +661,9 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 			code3->code.kind = IC_ASSIGN;
 			code3->code.result.kind = TEMP;
 			code3->code.result.u.var_id = place;
-			code2->code.arg1.kind = VARIABLE;
-			code2->code.arg1.u.name = symbol->name;
-			return linkInterCode(linkInterCode(code1, code2),code3);
+			code3->code.arg1.kind = VARIABLE;
+			code3->code.arg1.u.name = symbol->name;
+			return linkInterCode(linkInterCode(code1, code2), code3);
 		}
 		else
 			assert(0);
@@ -600,11 +684,11 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 		code0->code.arg1.u.value = 0;
 		InterCodes* code1 = translate_Cond(Exp, label1, label2);
 		InterCodes* code2 = newInterCodes();
-		code0->code.kind = IC_ASSIGN;
-		code0->code.result.kind = TEMP;
-		code0->code.result.u.var_id = place;
-		code0->code.arg1.kind = CONSTANT;
-		code0->code.arg1.u.value = 1;
+		code2->code.kind = IC_ASSIGN;
+		code2->code.result.kind = TEMP;
+		code2->code.result.u.var_id = place;
+		code2->code.arg1.kind = CONSTANT;
+		code2->code.arg1.u.value = 1;
 		return linkInterCode(
 		           linkInterCode(
 		               linkInterCode(code0, code1),
@@ -714,7 +798,8 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 			//here
 			return linkInterCode(code1, code2);
 		}
-		for (int i = 0; i < arglist->count; i++)
+		//Arg传入参数的顺序和PARAM声明参数的顺序相反
+		for (int i = arglist->count - 1; i >= 0; --i)
 		{
 			InterCodes *code2 = newInterCodes();
 			code2->code.kind = IC_ARG;
@@ -755,24 +840,74 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 	}
 	case 13:/*Exp -> Exp LB Exp RB*/
 	{
+		//不支持多维数组的解析
+		if(Exp->children[0]->productionNum==13){
+			printf("Cannot translate:Code contains vriables of multi-dimensional arrry type.\n"); 
+			assert(0);
+		}
+		assert(Exp->children[0]->productionNum==15);
+		FieldList symbol = lookupSymbol(Exp->children[0]->children[0]);
+		//Type symbol = Exp->children[0]->children[0]->type;
+		int t1 = newTempId();
+		int t2 = newTempId();
+		int t3 = newTempId();
+		int t4 = newTempId();
+		InterCodes* code1 = translate_Exp(Exp->children[0], t1);
+		InterCodes* code2 = translate_Exp(Exp->children[2], t2);
+        InterCodes* code3 = newInterCodes();  
+        code3->code.kind = IC_MUL;        //计算偏移量
+        code3->code.result.kind = TEMP;
+        code3->code.result.u.var_id = t3;
+        code3->code.arg1.kind = TEMP;
+        code3->code.arg1.u.var_id = t2;
+        code3->code.arg2.kind = CONSTANT;
+        code3->code.arg2.u.value = SizeOfType(symbol->type->u.array.elem);
+
+        InterCodes* code4 = newInterCodes();  
+        code4->code.kind = IC_PLUS;        
+        code4->code.result.kind = TEMP;
+        code4->code.result.u.var_id = t4;
+        code4->code.arg1.kind = TEMP;
+        code4->code.arg1.u.var_id = t1;
+        code4->code.arg2.kind = TEMP;
+        code4->code.arg2.u.var_id = t3;
+
+       	InterCodes* code5 = newInterCodes();
+		code5->code.kind = IC_DEREF_R;
+		code5->code.result.kind = TEMP;
+		code5->code.result.u.var_id = place;
+		code5->code.arg1.kind = TEMP;
+		code5->code.arg1.u.var_id = t4;
+
+		return linkInterCode(linkInterCode(
+								linkInterCode(code1,code2),
+								linkInterCode(code3,code4)),
+									code5);
+
 		break;
 	}
 	case 14:/*Exp -> Exp DOT ID*/
 	{
-		assert(Exp->children[0]->productionNum==15);
+		/*这里只解析结构体引用出现在等号右边的形式*/
+		assert(Exp->children[0]->productionNum == 15);
+		if (Exp->children[0]->type->isParameter) {
+			printf("isParameter\n");
+		} else {
+			printf("not a Parameter\n");
+		}
 		int offset = 0;
 		FieldList symbol = lookupSymbol(Exp->children[0]->children[0]);
 		//Type symbol = Exp->children[0]->children[0]->type;
 		assert(symbol->type->u.structure->tail);
-		for(FieldList p = symbol->type->u.structure->tail;p!=NULL;p=p->tail)
+		for (FieldList p = symbol->type->u.structure->tail; p != NULL; p = p->tail)
 		{
-			if(strcmp(p->name,Exp->children[2]->content)==0)
+			if (strcmp(p->name, Exp->children[2]->content) == 0)
 				break;
 			offset += SizeOfType(p->type);
 		}
 		int t1 = newTempId();
 		int t2 = newTempId();
-		InterCodes* code1 = translate_Exp(Exp->children[0],t1);
+		InterCodes* code1 = translate_Exp(Exp->children[0], t1);
 		InterCodes* code2 = newInterCodes();
 		code2->code.kind = IC_PLUS;
 		code2->code.result.kind = TEMP;
@@ -789,7 +924,7 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 		code3->code.arg1.kind = TEMP;
 		code3->code.arg1.u.var_id = t2;
 
-		return linkInterCode(linkInterCode(code1,code2),code3);
+		return linkInterCode(linkInterCode(code1, code2), code3);
 		break;
 	}
 	case 15:/*Exp -> ID*/
@@ -797,12 +932,30 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 
 		FieldList symbol = lookupSymbol(Exp->children[0]);
 		InterCodes* codes = newInterCodes();
-		codes->code.kind = IC_ASSIGN;
 
-		codes->code.result.kind = TEMP;
-		codes->code.result.u.var_id = place;
-		codes->code.arg1.kind = VARIABLE;
-		codes->code.arg1.u.name = symbol->name;
+		if (symbol->type->kind == BASIC) {
+			codes->code.kind = IC_ASSIGN;
+			codes->code.result.kind = TEMP;
+			codes->code.result.u.var_id = place;
+			codes->code.arg1.kind = VARIABLE;
+			codes->code.arg1.u.name = symbol->name;
+		} else {
+			if (symbol->type->isParameter) { 
+			//当引用的是函数的形参的时候，传过来的已经是地址了，不需要再取地址
+				codes->code.kind = IC_ASSIGN;
+				codes->code.result.kind = TEMP;
+				codes->code.result.u.var_id = place;
+				codes->code.arg1.kind = VARIABLE;
+				codes->code.arg1.u.name = symbol->name;
+			} else {
+				codes->code.kind = IC_ADDR;
+				codes->code.result.kind = TEMP;
+				codes->code.result.u.var_id = place;
+				codes->code.arg1.kind = VARIABLE;
+				codes->code.arg1.u.name = symbol->name;
+			}
+		}
+
 		return codes;
 	}
 	case 16: /*Exp -> INT*/
@@ -904,24 +1057,24 @@ InterCodes* translate_Args(SyntaxTreeNode *Args, ArgList* arglist)
 	if (Args->productionNum == 1) /*Args -> Exp*/
 	{
 		int t1 = newTempId();
-		if(Args->children[0]->type->kind==STRUCTURE)
+		if (Args->children[0]->type->kind == STRUCTURE)
 		{
-			InterCodes *code1 =translate_Exp(Args->children[0], t1);
-			int t2 = newTempId();
-			assert(Args->children[0]->productionNum==15);
+			//InterCodes *code1 =translate_Exp(Args->children[0], t1);
+			//int t2 = newTempId();
+			assert(Args->children[0]->productionNum == 15);
 			FieldList symbol = lookupSymbol(Args->children[0]->children[0]);
 			assert(symbol);
-			InterCodes *code2 = newInterCodes();
-			code2->code.kind = IC_ADDR;
-			code2->code.result.kind = TEMP;
-			code2->code.result.u.var_id = t2;
-			code2->code.arg1.kind = TEMP;
-			code2->code.arg1.u.var_id = t1;
+			InterCodes *code1 = newInterCodes();
+			code1->code.kind = IC_ADDR;
+			code1->code.result.kind = TEMP;
+			code1->code.result.u.var_id = t1;
+			code1->code.arg1.kind = VARIABLE;
+			code1->code.arg1.u.name = symbol->name;
 
-			arglist->id[arglist->count++] = t2;	
-			return linkInterCode(code1,code2);
+			arglist->id[arglist->count++] = t1;
+			return code1;
 		}
-		else{
+		else {
 			int t1 = newTempId();
 			arglist->id[arglist->count++] = t1;
 			return translate_Exp(Args->children[0], t1);
@@ -932,7 +1085,7 @@ InterCodes* translate_Args(SyntaxTreeNode *Args, ArgList* arglist)
 		int t1 = newTempId();
 		InterCodes *code1 = translate_Exp(Args->children[0], t1);
 		arglist->id[arglist->count++] = t1;
-		InterCodes *code2 = translate_Args(Args->children[2],arglist);
+		InterCodes *code2 = translate_Args(Args->children[2], arglist);
 		return linkInterCode(code1, code2);
 	}
 }

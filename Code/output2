@@ -12,23 +12,23 @@ in get_tail
 in get_tail
 in CompSt
 in StmtList
-in Stmt 0
-in Exp 0
-in Exp 15
-in Exp 16
-2
-in get_tail
-in get_tail
-in StmtList
 in Stmt 2
+in Exp 8
+in Exp 4
+in Exp 14
+isParameter
+in Exp 15
+in get_tail
+in get_tail
 in Exp 14
 isParameter
 in Exp 15
 in get_tail
 in get_tail
 in get_tail
-in StmtList
 in get_tail
+in get_tail
+in StmtList
 in get_tail
 in get_tail
 in ExtDefList
@@ -55,6 +55,7 @@ in Exp 16
 1
 in get_tail
 in get_tail
+in get_tail
 in StmtList
 in Stmt 0
 in Exp 0
@@ -63,20 +64,12 @@ in Exp 16
 2
 in get_tail
 in get_tail
+in get_tail
 in StmtList
 in Stmt 0
 in Exp 0
-in Exp 4
-in Exp 14
-not a Parameter
-in Exp 15
-in get_tail
-in get_tail
-in Exp 14
-not a Parameter
-in Exp 15
-in get_tail
-in get_tail
+in Exp 11
+in Arg 1
 in get_tail
 in get_tail
 in get_tail
@@ -105,31 +98,30 @@ in get_tail
 in get_tail
 FUNCTION add :
 PARAM v_temp
-t1 := &v_temp
-t2 := #2
-*t1 := t2
-t5 := &v_temp
-t6 := t5 + #0
-t4 := *t6
-RETURN t4
+t4 := &v_temp
+t5 := t4 + #0
+t2 := *t5
+t6 := &v_temp
+t7 := t6 + #4
+t3 := *t7
+t1 := t2 + t3
+RETURN t1
 FUNCTION main :
 DEC v_op 8
-t7 := &v_op
-t8 := #1
-*t7 := t8
-t10 := &v_op
-t11 := #2
-*t10 := t11
-t16 := &v_op
-t17 := t16 + #0
-t14 := *t17
-t18 := &v_op
-t19 := t18 + #4
-t15 := *t19
-t13 := t14 + t15
-v_n := t13
+t8 := &v_op
+t9 := #1
+t10 := t8 + #0
+*t10 := t9
+t11 := &v_op
+t12 := #2
+t13 := t11 + #4
+*t13 := t12
+t15 := &v_op
+ARG t15
+t14 := CALL add
+v_n := t14
 t0 := v_n
-t21 := v_n
-WRITE t21
-t22 := #0
-RETURN t22
+t17 := v_n
+WRITE t17
+t18 := #0
+RETURN t18

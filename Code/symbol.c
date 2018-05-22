@@ -147,11 +147,11 @@ void traverseTree(SyntaxTreeNode* root)
 				insertSymbolTable(root->children[0]);
 		}
 		else if (root->productionNum == 1)
-		{
+		{	
 			root->children[0]->type->isParameter = root->type->isParameter;
 			root->children[0]->type->kind = ARRAY;
 			root->children[0]->type->u.array.elem = root->type;
-			root->children[0]->type->u.array.size = atoi(root->children[3]->content);
+			root->children[0]->type->u.array.size = atoi(root->children[2]->content);
 			traverseTree(root->children[0]);
 		}
 	}
