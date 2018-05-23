@@ -104,12 +104,6 @@ void traverseTree(SyntaxTreeNode* root)
 			root->type->kind = STRUCTURE;
 			root->type->u.structure = (FieldList)malloc(sizeof(struct FieldList_));
 			buildStruct(root->children[3], root->type->u.structure, root->type->u.structure);
-			for(FieldList p = root->type->u.structure->tail;p!=NULL;p=p->tail)
-			{
-
-				printf("%s", p->name);
-				printtype(p->type);
-			}
 
 			if (root->children[1] != NULL) //OptTag -> ID
 			{

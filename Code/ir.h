@@ -11,12 +11,12 @@ typedef struct ArgList ArgList;
 enum RELOP_kind { LT, LE, EQ, NE, GE, GT };
 struct Operand_
 {
-	enum { TEMP, VARIABLE, CONSTANT, ADDRESS, FUNCTION, LABEL} kind;
+	enum { TEMP, VARIABLE, CONSTANT, FUNCTION, LABEL} kind;
 	union {
-		char *name;
-		int value;
-		int var_id;
-		int label_id;
+		char *name;    //VARIABLE'name  FUNCTION'name
+		int value;     //CONSTANT's value
+		int temp_id;   //TEMP's id
+		int label_id;  //LABEL's id
 	} u;
 };
 
@@ -49,7 +49,6 @@ struct InterCode {
 
 	enum RELOP_kind relop;
 	struct Operand_ result, arg1, arg2;
-	int mollocSize;
 };
 
 struct InterCodes_ {
@@ -65,10 +64,6 @@ struct ArgList{
 
 int tempId;
 int labelId;
-int interCount;
-
-InterCodes *codeHead;
-InterCodes *codeTail;
 
 FieldList lookupSymbol(SyntaxTreeNode *ID);
 void gen_InterCode(SyntaxTreeNode *root);
@@ -94,8 +89,25 @@ InterCodes* translate_Def(SyntaxTreeNode *Def);
 InterCodes* translate_DecList(SyntaxTreeNode *DecList);
 InterCodes* translate_Dec(SyntaxTreeNode *Dec);
 InterCodes* translate_DEREF_L(SyntaxTreeNode *Exp,int place);
-InterCodes* translate_DEREF_R(SyntaxTreeNode *Exp,int place);
+InterCodes* translate_ADDR(SyntaxTreeNode *Exp,int place);
 
-SyntaxTreeNode * getId(SyntaxTreeNode *Exp);
-void printLink();
+#define Map_Max 5
+struct Constant_Map
+{
+	int value;
+	int temp_id;
+}constant_map[Map_Max];
+
+struct Variable_Map
+{
+	char* name;
+	int temp_id;
+}variable_map[Map_Max];
+
+int constant_count;
+int variable_count;
+void code_optimization(InterCodes* codes);
+void replace_constant(InterCodes* codes);
+void replace_variable(InterCodes* codes);
+InterCodes* deleteCode(InterCodes* codes);
 #endif
