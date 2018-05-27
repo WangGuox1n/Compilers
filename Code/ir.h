@@ -109,5 +109,6 @@ int variable_count;
 void code_optimization(InterCodes* codes);
 void replace_constant(InterCodes* codes);
 void replace_variable(InterCodes* codes);
+void delete_Goto(InterCodes* codes);
 InterCodes* deleteCode(InterCodes* codes);
 #endif

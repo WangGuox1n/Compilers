@@ -197,7 +197,6 @@ int newLabelId() { return labelId++; }
 
 enum RELOP_kind get_relop(SyntaxTreeNode *node)
 {
-	printf("%s\n", node->content);
 	if (strcmp(node->content, "<") == 0)
 		return LT;
 	else if (strcmp(node->content, "<=") == 0)
@@ -234,13 +233,11 @@ InterCodes* gen_Label(int label_id)
 
 InterCodes* translate_Program(SyntaxTreeNode *Program)
 {
-	printf("in Program\n");
 	return translate_ExtDefList(Program->children[0]);
 }
 
 InterCodes* translate_ExtDefList(SyntaxTreeNode *ExtDefList)
 {
-	printf("in ExtDefList\n");
 	if (NULL == ExtDefList)
 		return NULL;
 	InterCodes *code1 = translate_ExtDef(ExtDefList->children[0]);
@@ -250,7 +247,6 @@ InterCodes* translate_ExtDefList(SyntaxTreeNode *ExtDefList)
 
 InterCodes* translate_ExtDef(SyntaxTreeNode *ExtDef)
 {
-	printf("in ExtDef\n");
 	if (ExtDef->productionNum == 2)
 	{
 		InterCodes *code1 = translate_FunDec(ExtDef->children[1]);
@@ -264,7 +260,6 @@ InterCodes* translate_ExtDef(SyntaxTreeNode *ExtDef)
 InterCodes* translate_VarDec(SyntaxTreeNode *VarDec)
 {
 	/*这里仅用于解析定义变量的时候内存空间的申请操作，函数形参留在Param里解析*/
-	printf("int VarDec %d\n", VarDec->productionNum);
 	if (0 == VarDec->productionNum)
 	{
 		FieldList symbol = lookupSymbol(VarDec->children[0]);
@@ -300,7 +295,6 @@ InterCodes* translate_VarDec(SyntaxTreeNode *VarDec)
 
 InterCodes* translate_FunDec(SyntaxTreeNode *FunDec)
 {
-	printf("in FunDec\n");
 	InterCodes *code1 = newInterCodes();
 	code1->code.kind = IC_FUNC;
 	code1->code.result.kind = FUNCTION;
@@ -315,7 +309,6 @@ InterCodes* translate_FunDec(SyntaxTreeNode *FunDec)
 
 InterCodes* translate_VarList(SyntaxTreeNode *VarList)
 {
-	printf("in VarList\n");
 	InterCodes *code1 = translate_ParamDec(VarList->children[0]);
 	InterCodes *code2 = NULL;
 	if (VarList->productionNum == 0)
@@ -326,7 +319,6 @@ InterCodes* translate_VarList(SyntaxTreeNode *VarList)
 
 InterCodes* translate_ParamDec(SyntaxTreeNode *ParamDec)
 {
-	printf("in ParamDec\n");
 	// only support basic/struct type varible, not arrry type.
 	//assert(ParamDec->children[1]->productionNum == 0);
 	ParamDec->type->isParameter = 1;
@@ -349,7 +341,6 @@ InterCodes* translate_ParamDec(SyntaxTreeNode *ParamDec)
 
 InterCodes* translate_CompSt(SyntaxTreeNode *CompSt)
 {
-	printf("in CompSt\n");
 	assert(CompSt != NULL);
 	InterCodes *code1 = translate_DefList(CompSt->children[1]);
 	InterCodes *code2 = translate_StmtList(CompSt->children[2]);
@@ -360,7 +351,6 @@ InterCodes* translate_CompSt(SyntaxTreeNode *CompSt)
 
 InterCodes* translate_StmtList(SyntaxTreeNode *StmtList)
 {
-	printf("in StmtList\n");
 	if (NULL == StmtList)
 		return NULL;
 	InterCodes *code1 = translate_Stmt(StmtList->children[0]);
@@ -370,7 +360,6 @@ InterCodes* translate_StmtList(SyntaxTreeNode *StmtList)
 
 InterCodes* translate_Stmt(SyntaxTreeNode *Stmt)
 {
-	printf("in Stmt %d\n", Stmt->productionNum);
 	switch (Stmt->productionNum)
 	{
 	case 0: return translate_Exp(Stmt->children[0], 0);
@@ -435,7 +424,6 @@ InterCodes* translate_DefList(SyntaxTreeNode *DefList)
 {
 	if (NULL == DefList)
 		return NULL;
-	printf("in DefList %d\n", DefList->productionNum);
 	InterCodes *code1 = translate_Def(DefList->children[0]);
 	InterCodes *code2 = translate_DefList(DefList->children[1]);
 	return linkInterCode(code1, code2);
@@ -444,14 +432,12 @@ InterCodes* translate_DefList(SyntaxTreeNode *DefList)
 
 InterCodes* translate_Def(SyntaxTreeNode *Def)
 {
-	printf("in Def \n");
 	Def->type->isParameter = 0;
 	return translate_DecList(Def->children[1]);
 }
 
 InterCodes* translate_DecList(SyntaxTreeNode *DecList)
 {
-	printf("in DecList\n");
 	assert(DecList);
 	if (DecList->productionNum == 0)
 		return translate_Dec(DecList->children[0]);
@@ -465,7 +451,6 @@ InterCodes* translate_DecList(SyntaxTreeNode *DecList)
 
 InterCodes* translate_Dec(SyntaxTreeNode *Dec)
 {
-	printf("in Dec\n");
 	//Dec -> VarDec ASSIGNOP Exp
 	assert(Dec);
 	if (0 == Dec->productionNum)
@@ -492,7 +477,6 @@ InterCodes* translate_Dec(SyntaxTreeNode *Dec)
 
 InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 {
-	printf("in Exp %d\n", Exp->productionNum);
 	switch (Exp->productionNum)
 	{
 	case 0:/*Exp -> Exp1 ASSIGNOP Exp2*/
@@ -776,7 +760,6 @@ InterCodes* translate_Exp(SyntaxTreeNode *Exp, int place)
 
 InterCodes* translate_Cond(SyntaxTreeNode *Exp, int label_true, int label_false)
 {
-	printf("in Cond\n");
 	switch (Exp->productionNum)
 	{
 	case 1:/*Exp -> Exp AND Exp*/
@@ -843,7 +826,6 @@ InterCodes* translate_Cond(SyntaxTreeNode *Exp, int label_true, int label_false)
 
 InterCodes* translate_Args(SyntaxTreeNode *Args, ArgList* arglist)
 {
-	printf("in Arg %d\n", Args->productionNum);
 	if (Args->productionNum == 1) /*Args -> Exp*/
 	{
 		int t1 = newTempId();
@@ -885,7 +867,6 @@ InterCodes* translate_Args(SyntaxTreeNode *Args, ArgList* arglist)
 */
 InterCodes* translate_ADDR(SyntaxTreeNode *Exp, int place)
 {
-	printf("in translate_ADDR %d\n", Exp->productionNum);
 	if (Exp->productionNum == 13) /*Exp -> Exp LB Exp RB*/
 	{
 		if (Exp->children[0]->productionNum == 13) {
@@ -985,10 +966,14 @@ InterCodes* translate_ADDR(SyntaxTreeNode *Exp, int place)
 	assert(0);
 }
 
+int isChanged = 0;
 void code_optimization(InterCodes* codes)
 {
-	replace_constant(codes);
-	replace_variable(codes);
+	do {
+		isChanged = 0;
+		replace_constant(codes);
+		replace_variable(codes);
+	} while (isChanged);
 }
 
 int isConstantMap(int temp_id)
@@ -1001,29 +986,29 @@ int isConstantMap(int temp_id)
 	return -1;
 }
 
-//临时变量 — 常量 之间的替换
 void replace_constant(InterCodes* codes)
 {
-	InterCodes *p = codes;
-
-	while (p != NULL)
+	//临时变量 — 常量 之间的替换 t1 = #1, v1 = t1 -> v1 = #1
+	for (InterCodes *p = codes; p != NULL; p = p->next)
 	{
 		switch (p->code.kind)
 		{
 		case IC_ASSIGN: {
-			if (p->code.arg1.kind == CONSTANT)
+			if (p->code.result.kind == TEMP && p->code.arg1.kind == CONSTANT)
 			{
 				constant_map[constant_count].value = p->code.arg1.u.value;
 				constant_map[constant_count].temp_id = p->code.result.u.temp_id;
 				if (++constant_count == Map_Max)
 					constant_count = 0;
 				p = deleteCode(p);
+				isChanged = 1;
 			}
 			else if (p->code.arg1.kind == TEMP && isConstantMap(p->code.arg1.u.temp_id) >= 0)
 			{
 				int index = isConstantMap(p->code.arg1.u.temp_id);
 				p->code.arg1.kind = CONSTANT;
 				p->code.arg1.u.value = constant_map[index].value;
+				isChanged = 1;
 			}
 			break;
 		}
@@ -1037,12 +1022,14 @@ void replace_constant(InterCodes* codes)
 				int index = isConstantMap(p->code.arg1.u.temp_id);
 				p->code.arg1.kind = CONSTANT;
 				p->code.arg1.u.value = constant_map[index].value;
+				isChanged = 1;
 			}
 			if (p->code.arg2.kind == TEMP && isConstantMap(p->code.arg2.u.temp_id) >= 0)
 			{
 				int index = isConstantMap(p->code.arg2.u.temp_id);
 				p->code.arg2.kind = CONSTANT;
 				p->code.arg2.u.value = constant_map[index].value;
+				isChanged = 1;
 			}
 			break;
 		}
@@ -1054,6 +1041,7 @@ void replace_constant(InterCodes* codes)
 				int index = isConstantMap(p->code.result.u.temp_id);
 				p->code.result.kind = CONSTANT;
 				p->code.result.u.value = constant_map[index].value;
+				isChanged = 1;
 			}
 			break;
 		}
@@ -1063,12 +1051,44 @@ void replace_constant(InterCodes* codes)
 				int index = isConstantMap(p->code.arg1.u.temp_id);
 				p->code.arg1.kind = CONSTANT;
 				p->code.arg1.u.value = constant_map[index].value;
+				isChanged = 1;
 			}
 			break;
 		}
 		default: break;
 		}
-		p = p->next;
+	}
+
+	// t1 = t2 + #0 or t1 = t1 - #0 ->t1 = t2
+	for (InterCodes *p = codes; p != NULL; p = p->next)
+	{
+		if ((p->code.kind == IC_PLUS || p->code.kind == IC_MINUS)
+		        && p->code.arg2.kind == CONSTANT && p->code.arg2.u.value == 0)
+		{
+			p->code.kind = IC_ASSIGN;
+			isChanged = 1;
+		}
+	}
+
+	//减少常量计算 t1 = #2 - #1, t2 = t1 + #1  -> t2 = #2
+	for (InterCodes *p = codes; p != NULL; p = p->next)
+	{
+		if ((p->code.kind == IC_PLUS || p->code.kind == IC_MINUS || p->code.kind == IC_MUL || p->code.kind == IC_DIV)
+		        && p->code.arg1.kind == CONSTANT && p->code.arg2.kind == CONSTANT)
+		{
+			int new_value = 0;
+			switch (p->code.kind)
+			{
+			case IC_PLUS: new_value = p->code.arg1.u.value + p->code.arg2.u.value; break;
+			case IC_MINUS: new_value = p->code.arg1.u.value - p->code.arg2.u.value; break;
+			case IC_MUL:  new_value = p->code.arg1.u.value * p->code.arg2.u.value; break;
+			case IC_DIV:  new_value = p->code.arg1.u.value / p->code.arg2.u.value; break;
+			default: break;
+			}
+			p->code.kind = IC_ASSIGN;
+			p->code.arg1.u.value = new_value;
+			isChanged = 1;
+		}
 	}
 }
 
@@ -1081,6 +1101,7 @@ int isVariableMap(int temp_id)
 	}
 	return -1;
 }
+
 //临时变量 — 变量 之间的替换
 void replace_variable(InterCodes* codes)
 {
@@ -1090,7 +1111,7 @@ void replace_variable(InterCodes* codes)
 		switch (p->code.kind)
 		{
 		case IC_ASSIGN: {
-			if (p->code.arg1.kind == VARIABLE)
+			if (p->code.result.kind == TEMP && p->code.arg1.kind == VARIABLE)
 			{
 				if (p->code.result.u.temp_id == 0) {
 					p = deleteCode(p);
@@ -1101,12 +1122,14 @@ void replace_variable(InterCodes* codes)
 				if (++variable_count == Map_Max)
 					variable_count = 0;
 				p = deleteCode(p);
+				isChanged = 1;
 			}
 			else if (p->code.arg1.kind == TEMP && isVariableMap(p->code.arg1.u.temp_id) >= 0)
 			{
 				int index = isVariableMap(p->code.arg1.u.temp_id);
 				p->code.arg1.kind = VARIABLE;
 				p->code.arg1.u.name = variable_map[index].name;
+				isChanged = 1;
 			}
 			break;
 		}
@@ -1120,12 +1143,14 @@ void replace_variable(InterCodes* codes)
 				int index = isVariableMap(p->code.arg1.u.temp_id);
 				p->code.arg1.kind = VARIABLE;
 				p->code.arg1.u.name = variable_map[index].name;
+				isChanged = 1;
 			}
 			if (p->code.arg2.kind == TEMP && isVariableMap(p->code.arg2.u.temp_id) >= 0)
 			{
 				int index = isVariableMap(p->code.arg2.u.temp_id);
 				p->code.arg2.kind = VARIABLE;
 				p->code.arg2.u.name = variable_map[index].name;
+				isChanged = 1;
 			}
 			break;
 		}
@@ -1137,6 +1162,7 @@ void replace_variable(InterCodes* codes)
 				int index = isVariableMap(p->code.result.u.temp_id);
 				p->code.result.kind = VARIABLE;
 				p->code.result.u.name = variable_map[index].name;
+				isChanged = 1;
 			}
 			break;
 		}
@@ -1146,12 +1172,41 @@ void replace_variable(InterCodes* codes)
 				int index = isVariableMap(p->code.arg1.u.temp_id);
 				p->code.arg1.kind = VARIABLE;
 				p->code.arg1.u.name = variable_map[index].name;
+				isChanged = 1;
 			}
 			break;
 		}
 		default: break;
 		}
 		p = p->next;
+	}
+}
+
+/*if t1 > t2 GOTO label1
+  GOTO label2
+	->
+  if t1 <= t2 GOTO label2
+*/
+void delete_Goto(InterCodes* codes)
+{
+	for (InterCodes *p = codes; p != NULL; p = p->next)
+	{
+		if (p->code.kind == IC_RELOP)
+		{
+			switch (p->code.relop)
+			{
+			case LT: p->code.relop = GE; break;
+			case LE: p->code.relop = GT; break;
+			case EQ: p->code.relop = NE; break;
+			case GT: p->code.relop = LE; break;
+			case GE: p->code.relop = LT; break;
+			case NE: p->code.relop = EQ; break;
+			default: assert(0);
+			}
+			assert(p->next->code.kind == IC_GOTO);
+			p->code.result.u.label_id = p->next->code.result.u.label_id;
+			deleteCode(p->next);
+		}
 	}
 }
 
