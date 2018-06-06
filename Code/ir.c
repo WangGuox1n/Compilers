@@ -233,6 +233,10 @@ InterCodes* gen_Label(int label_id)
 
 InterCodes* translate_Program(SyntaxTreeNode *Program)
 {
+	tempId = 1;
+	labelId = 1;
+	constant_count = 0;
+	variable_count = 0;
 	return translate_ExtDefList(Program->children[0]);
 }
 

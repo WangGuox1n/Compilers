@@ -1,6 +1,7 @@
 #include "syntaxtree.h"
 #include "syntax.tab.h"
 #include "ir.h"
+#include "obeject_code.h"
 int main(int argc, char** argv)
 {
 	if(argc <= 1) 
@@ -18,6 +19,7 @@ int main(int argc, char** argv)
 	addReadAndWrite();
 	traverseTree(treeroot);
 	//output(treeroot,0);
-	gen_InterCode(treeroot);
+	//gen_InterCode(treeroot);
+	generate_oc(treeroot);
 	return 0;
 }
