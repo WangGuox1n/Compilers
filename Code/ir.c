@@ -835,8 +835,8 @@ InterCodes* translate_Args(SyntaxTreeNode *Args, ArgList* arglist)
 		int t1 = newTempId();
 		if (Args->children[0]->type->kind == STRUCTURE)
 		{
-			//InterCodes *code1 =translate_Exp(Args->children[0], t1);
-			//int t2 = newTempId();
+
+			//there is a bug that arg support array[i] and i have no time to fix it;  
 			assert(Args->children[0]->productionNum == 15);
 			FieldList symbol = lookupSymbol(Args->children[0]->children[0]);
 			assert(symbol);

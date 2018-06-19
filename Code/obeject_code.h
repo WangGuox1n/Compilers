@@ -25,16 +25,16 @@ Variable *varList;
 int offset2fp;
 int offset2sp;  //use to load param from stack
 
-void generate_oc(SyntaxTreeNode *root);
-void generate_head();
-void genarate_call(char *function_name);
-void generate_text(InterCodes* codes);
-void generate_prologue();
-void generate_epilogue();
+void generate_oc(FILE* fout,SyntaxTreeNode *root);
+void generate_head(FILE* fout);
+void genarate_call(FILE* fout,char *function_name);
+void generate_text(FILE* fout,InterCodes* codes);
+void generate_prologue(FILE* fout);
+void generate_epilogue(FILE* fout);
 void initReg();
-int getReg(Operand operand);
+int getReg(FILE* fout,Operand operand);
 void freeReg(int i);
-void spillReg(int i);
-Variable* allocate(Operand operand);
+void spillReg(FILE* fout,int i);
+Variable* allocate(FILE* fout,Operand operand);
 
 #endif
